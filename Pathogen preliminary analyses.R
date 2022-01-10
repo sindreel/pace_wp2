@@ -69,13 +69,18 @@ pathogens_NOV21$hatchery_wild <- as.factor(pathogens_NOV21$hatchery_wild)
 pathogens_NOV21$set_location <- as.factor(pathogens_NOV21$set_location)
 pathogens_NOV21$station <- as.factor(pathogens_NOV21$station)
 pathogens_NOV21$Transmitter.ID <- as.factor(pathogens_NOV21$Transmitter.ID)
-pathogens_NOV21$pathogen <- as.factor(pathogens_NOV21$pathogen)
-pathogens_NOV21$measurement <- as.numeric(pathogens_NOV21$measurement)
-
-pathogens_NOV21 <- pathogens_NOV21[c("hkg_alert", "common_name", "dna_id", "hatchery_wild", "fork_length..mm.", "set_location", "station", "Transmitter.ID", 
+#pathogens_NOV21$pathogen <- as.factor(pathogens_NOV21$pathogen)
+#pathogens_NOV21$measurement <- as.numeric(pathogens_NOV21$measurement)
+str(pathogens_NOV21)
+pathogens_NOV21 <- pathogens_NOV21[c("hkg_alert", "unique_id", "fluidigm_num", "alternate_num", "common_name", "dna_id", "hatchery_wild", "fork_length..mm.", "set_location", "station", "Transmitter.ID", "capture_date",
                                      "ascv", "c_b_cys", "fl_psy", "ic_mul", "IcD", "my_sp", "pa_pse", "pa_ther", "pch_sal", "pisck_sal", "prv1", "prv3", "sch", "te_dic", "te_fin",
                                      "te_mar")]
 pathogens_NOV21_0 <- pathogens_NOV21
+
+colnames(pathogens_NOV21)
+table_kristi <- pathogens_NOV21[c("unique_id", "fluidigm_num", "alternate_num", "common_name", "dna_id", "hatchery_wild", "fork_length..mm.", "set_location", "station", "Transmitter.ID",  "capture_date")]
+write.csv(table_kristi,"./data/modified_data/table_kristi.csv", row.names = FALSE)
+
 
 count_groups <- pathogens_NOV21 %>%
   group_by(set_location, common_name) %>%
