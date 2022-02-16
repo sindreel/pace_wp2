@@ -37,11 +37,13 @@ pathogens_NOV21 <- "https://ntnu.box.com/shared/static/8spgc94zm6wqk2etfuynyxhrl
 download.file(url=pathogens_NOV21,destfile="./data/raw_data/pathogens_NOV21.csv")  
 
 
-URL_4089_4090_Sasa_log2_SasaAQ_1 <- "https://ntnu.box.com/shared/static/wycb8ibkk58k2nb2mvyey9jr7rir6m3o.csv" #Uploaded new version 18.12.20
-download.file(url=URL_4089_4090_Sasa_log2_SasaAQ_1,destfile="./data/raw_data/4089_4090_Sasa_log2_SasaAQ_1.csv")  
 
-URL_4089_4090_Satr_log2_SasaAQ_1 <- "https://ntnu.box.com/shared/static/5eax7kkduvt606h9bzmgpwr30oldk6d3.csv" #Uploaded new version 18.12.20
-download.file(url=URL_4089_4090_Satr_log2_SasaAQ_1,destfile="./data/raw_data/4089_4090_Satr_log2_SasaAQ_1.csv")  
+#Gene expression data - THESE NEEDS TO BE UPDATED.
+#URL_4089_4090_Sasa_log2_SasaAQ_1 <- "https://ntnu.box.com/shared/static/wycb8ibkk58k2nb2mvyey9jr7rir6m3o.csv" #Uploaded new version 18.12.20
+#download.file(url=URL_4089_4090_Sasa_log2_SasaAQ_1,destfile="./data/raw_data/4089_4090_Sasa_log2_SasaAQ_1.csv")  
+
+#URL_4089_4090_Satr_log2_SasaAQ_1 <- "https://ntnu.box.com/shared/static/5eax7kkduvt606h9bzmgpwr30oldk6d3.csv" #Uploaded new version 18.12.20
+#download.file(url=URL_4089_4090_Satr_log2_SasaAQ_1,destfile="./data/raw_data/4089_4090_Satr_log2_SasaAQ_1.csv")  
 ###########################################################
 
 
@@ -90,20 +92,30 @@ pathogens_NOV21$Transmitter.ID <- as.factor(pathogens_NOV21$Transmitter.ID)
 #pathogens_NOV21$pathogen <- as.factor(pathogens_NOV21$pathogen)
 #pathogens_NOV21$measurement <- as.numeric(pathogens_NOV21$measurement)
 str(pathogens_NOV21)
-pathogens_NOV21 <- pathogens_NOV21[c("hkg_alert", "unique_id", "fluidigm_num", "alternate_num", "common_name", "dna_id", "hatchery_wild", "fork_length..mm.", "set_location", "station", "Transmitter.ID", "capture_date",
-                                     "ascv", "c_b_cys", "fl_psy", "ic_mul", "IcD", "my_sp", "pa_pse", "pa_ther", "pch_sal", "pisck_sal", "prv1", "prv3", "sch", "te_dic", "te_fin",
-                                     "te_mar")]
-pathogens_NOV21_0 <- pathogens_NOV21
 
-colnames(pathogens_NOV21)
+pathogens_NOV21 <- pathogens_NOV21[c("hkg_alert", "unique_id", "fluidigm_num", "alternate_num", "common_name", "dna_id", "hatchery_wild", "fork_length..mm.", "set_location", "station", "Transmitter.ID", "capture_date",
+                                     "ascv", "c_b_cys", "fl_psy", "ic_mul", "IcD", "my_sp", "pa_pse", "pa_ther", "pch_sal", "pisck_sal", "prv1", "prv3", "sch","te_mar")]
+pathogens_NOV21_0 <- pathogens_NOV21
 table_kristi <- pathogens_NOV21[c("unique_id", "fluidigm_num", "alternate_num", "common_name", "dna_id", "hatchery_wild", "fork_length..mm.", "set_location", "station", "Transmitter.ID",  "capture_date")]
 write.csv(table_kristi,"./data/modified_data/table_kristi.csv", row.names = FALSE)
+
+pathogens_NOV21 <- pathogens_NOV21[c("hkg_alert", "fluidigm_num", "alternate_num", "common_name", "dna_id", "set_location", "Transmitter.ID", "capture_date",
+                                      "ascv", "c_b_cys", "fl_psy", "ic_mul", "IcD", "my_sp", "pa_pse", "pa_ther", "pch_sal", "pisck_sal", "prv1", "prv3", "sch","te_mar")]
+colnames(pathogens_NOV21)
+str(pathogens_NOV21)
 
 count_groups <- pathogens_NOV21[c("set_location", "common_name", "alternate_num")]
 count_groups <- count_groups[!duplicated(count_groups$alternate_num), ]
 count_groups <- count_groups %>%
   group_by(set_location, common_name) %>%
   dplyr::summarise(pathogen_precence = n())
+
+
+#Add fish info and behavioral data
+
+
+
+
 
 
 pathogens_NOV21 <- gather(pathogens_NOV21, pathogen, measurement, ascv:te_mar, factor_key=TRUE)
@@ -294,11 +306,8 @@ positive_fish <- shan_all[shan_all$pathogen_count>0, ]
 tmp_pos <- positive_fish[c(5:18)]
 tmp_pos[tmp_pos == 0] <- NA
 
-?metaMDS
 nmms <- metaMDS(positive_fish[c(5:18)], maxit = 100, permutations = 999, k = 2, autotransform = FALSE, engine = "isoMDS")
-
 plot(nmms, type = "t")
-
 
 data.scores <- as.data.frame(scores(nmms))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
 data.scores$site <- rownames(data.scores)  # create a column of site names, from the rownames of data.scores
@@ -308,7 +317,6 @@ head(data.scores)  #look at the data
 species.scores <- as.data.frame(scores(nmms, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
 species.scores$species <- rownames(species.scores)  # create a column of species, from the rownames of species.scores
 head(species.scores)  #look at the data
-
 
 #plot ordination species
 ggplot() + 
@@ -362,19 +370,23 @@ ggplot() +
   stat_ellipse(data=data.scores, aes(x=NMDS1, y=NMDS2,color=set_location, group=set_location),type = "norm")
 
 
-fish_metadata <- read.csv("./data/modified_data/summary_table_metadata_PACE_WP2_270122.csv")
-str(fish_metadata)
-str(data.scores)
-fish_metadata <- merge (fish_metadata, data.scores["alternate_num"])
 
 
 #run envfit to ordination 
 positive_trout <- positive_fish[positive_fish$common_name=='Sea trout', ]
+#positive_trout[c(5:18)] <- positive_trout[c(5:18)] %>% mutate_if(is.numeric, ~1 * (. > 0))#changes all positive calues to 1
+
 nmms <- metaMDS(positive_trout[c(5:18)], maxit = 100, permutations = 999, k = 2, autotransform = FALSE, engine = "isoMDS")
 data.scores <- as.data.frame(scores(nmms))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
 data.scores$site <- rownames(data.scores)  # create a column of site names, from the rownames of data.scores
 data.scores <- cbind(data.scores, positive_trout)  #  add the grp variable created earlier
 head(data.scores)  #look at the data
+
+fish_metadata <- read.csv("./data/modified_data/summary_table_metadata_PACE_WP2_270122.csv")
+str(fish_metadata)
+str(data.scores)
+fish_metadata <- merge (fish_metadata, data.scores["alternate_num"])
+
 
 species.scores <- as.data.frame(scores(nmms, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
 species.scores$species <- rownames(species.scores)  # create a column of species, from the rownames of species.scores
@@ -383,9 +395,11 @@ head(species.scores)  #look at the data
 str(trout_metadata)
 trout_metadata <- fish_metadata[fish_metadata$common_name=='Sea trout',]
 envfit_1 <- (envfit(nmms, trout_metadata[c("common_name", "fork_length..mm.","skin_colour", "daysurv")], permutations = 999, na.rm = TRUE))
+envfit_1
 en_coord_cont = as.data.frame(scores(envfit_1, "vectors")) * ordiArrowMul(envfit_1)
 en_coord_cat = as.data.frame(scores(envfit_1, "factors")) * ordiArrowMul(envfit_1)
 envfit_2 <- (envfit(nmms, trout_metadata[c("freshwater_entry_days")], permutations = 999, na.rm = TRUE))
+envfit_2
 en_coord_cont2 = as.data.frame(scores(envfit_2, "vectors")) * ordiArrowMul(envfit_2)
 trout_metadata[c("fork_length..mm.")]
 str(data.scores)
@@ -407,6 +421,8 @@ gg
 
 gg = ggplot(data = data.scores, aes(x = NMDS1, y = NMDS2)) + 
   geom_point(data = data.scores, aes(colour = set_location), size = 3, alpha = 0.5) + 
+
+  geom_text(data=species.scores,aes(x=NMDS1,y=NMDS2,label=species),alpha=0.5) +  # add the species labels
   scale_colour_manual(values = c("orange", "steelblue", "pink"))  + 
   geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
               data = en_coord_cont, size =1, alpha = 0.5, colour = "grey30") +
@@ -418,7 +434,7 @@ gg = ggplot(data = data.scores, aes(x = NMDS1, y = NMDS2)) +
             label = row.names(en_coord_cat), colour = "navy", fontface = "bold") + 
   geom_text(data = en_coord_cont, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
             fontface = "bold", label = row.names(en_coord_cont)) + 
-  geom_text(data = en_coord_cont2, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+  geom_text(data = en_coord_cont2, aes(x = NMDS1, y = NMDS2+0.05), colour = "grey30", 
             fontface = "bold", label = row.names(en_coord_cont2)) +
   theme(axis.title = element_text(size = 10, face = "bold", colour = "grey30"), 
         panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
@@ -430,6 +446,16 @@ gg = ggplot(data = data.scores, aes(x = NMDS1, y = NMDS2)) +
 
 
 gg
+
+str(positive_trout)
+str(fish_metadata)
+str(shan_all)
+tmp <- merge(fish_metadata, shan_all, by = "alternate_num")
+ggplot(tmp, aes(x=tmp$fork_length..mm., y=tmp$pathogen_count)) + geom_smooth(method="lm") + theme_classic(base_size = 18) + geom_point() + xlab("Body size (mm)") + ylab("Number of detected pathogens")  +ylim (0,5) + ggtitle("d") +xlab(element_blank())
+ggplot(tmp, aes(x=tmp$fork_length..mm., y=tmp$pathogen_count, fill= common_name.x)) + geom_smooth(method="lm") + theme_classic(base_size = 18) + geom_point() + xlab("Body size (mm)") + ylab("Number of detected pathogens")  +ylim (0,5) + ggtitle("d") +xlab(element_blank())
+ggplot(tmp, aes(x=tmp$fork_length..mm., y=tmp$pathogen_count, fill= set_location.x)) + geom_smooth(method="lm") + theme_classic(base_size = 18) + geom_point() + xlab("Body size (mm)") + ylab("Number of detected pathogens")  +ylim (0,5) + ggtitle("d") +xlab(element_blank())
+
+str(tmp)
 
 
 ggplot() + 
