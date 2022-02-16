@@ -24,12 +24,12 @@ str(table_kristi)
 
 beiarfjorden_fish <- read.csv("C:/Rdata/Git/Beiarfjorden_2/data/modified_data/beiarfjorden_tagging_kristie.csv", sep = ",")
 str(beiarfjorden_fish)
-names(beiarfjorden_fish) <- c("transmitterID", "gill_sample",  "skin_colour", "tagging_temp","Date", "max_tracking_date", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "n_station", "n_all")
-beiarfjorden_fish <- beiarfjorden_fish[c("transmitterID", "gill_sample", "tagging_temp", "skin_colour", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp")]
+names(beiarfjorden_fish) <- c("transmitterID", "gill_sample",  "skin_colour", "tagging_temp","Date", "max_tracking_date", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "n_station", "n_all", "freshwater_entry", "freshwater_entry_days")
+beiarfjorden_fish <- beiarfjorden_fish[c("transmitterID", "gill_sample", "tagging_temp", "skin_colour", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "freshwater_entry", "freshwater_entry_days")]
 
 hellstranda_fish <- read.csv("C:/Rdata/Git/hellstranda/data/modified_data/stjordal_tagging_kristie.csv", sep = ",")
 str(hellstranda_fish)
-hellstranda_fish <- hellstranda_fish[c("transmitterID", "gill_sample", "tagging_temp", "skin_colour", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp")]
+hellstranda_fish <- hellstranda_fish[c("transmitterID", "gill_sample", "tagging_temp", "skin_colour", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "freshwater_entry", "freshwater_entry_days")]
 
 bolstad_fish <-  read.csv("C:/Rdata/Git/PACE_WP2_Bolstadfjord/data/modified_data/bolstadfjorden_tagging_kristie.csv", sep = ",")
 str(bolstad_fish)
@@ -48,11 +48,13 @@ bolstad_fish$interaction <- interaction(bolstad_fish$common_name, bolstad_fish$g
 bolstad_fish <- merge(bolstad_fish, table_kristi[c("interaction")], by = "interaction")
 
 str(bolstad_fish)
-names(bolstad_fish) <- c("interaction", "transmitterID", "gill_sample",   "tagging_temp","skin_colour","Date","Spp", "max_tracking_date", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "n_station", "n_all" , "common_name")
-bolstad_fish <- bolstad_fish[c("transmitterID", "gill_sample", "tagging_temp", "skin_colour", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp")]
+names(bolstad_fish) <- c("interaction", "transmitterID", "gill_sample",   "tagging_temp","skin_colour","Date","Spp", "max_tracking_date", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "n_station", "n_all" , "freshwater_entry", "freshwater_entry_days", "common_name")
+bolstad_fish <- bolstad_fish[c("transmitterID", "gill_sample", "tagging_temp", "skin_colour", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "freshwater_entry", "freshwater_entry_days")]
 tmp <- bolstad_fish[duplicated(bolstad_fish$gill_sample), ]
 
-
+str(beiarfjorden_fish)
+str(hellstranda_fish)
+str(bolstad_fish)
 summary_data <- rbind(beiarfjorden_fish, hellstranda_fish, bolstad_fish)
 
 
@@ -76,7 +78,7 @@ headings <- colnames(combined_table)
 
 combined_table <- combined_table[c("dna_id","unique_id","fluidigm_num","alternate_num","common_name","hatchery_wild","fork_length..mm.","set_location", "station",
                                    "Transmitter.ID","capture_date", "tagging_habitat","skin_colour","transmitterID","daysurv","tagging_temp","avg_temp",
-                                  "min_temp","max_temp")]
+                                  "min_temp","max_temp", "freshwater_entry", "freshwater_entry_days")]
 head(combined_table)
 summary(as.factor(combined_table$skin_colour))
 
@@ -117,4 +119,4 @@ combined_table$tagging_habitat[combined_table$set_location=='Bolstadfjorden'& co
 combined_table$tagging_habitat[combined_table$set_location=='Bolstadfjorden'& combined_table$station=='Merrhølen'] <- 'river'
 combined_table$tagging_habitat[combined_table$set_location=='Bolstadfjorden'& combined_table$station=='Osen'] <- 'river'
 
-write.csv(combined_table, "./data/modified_data/summary_table_metadata_PACE_WP2_100122.csv", row.names = FALSE)
+write.csv(combined_table, "./data/modified_data/summary_table_metadata_PACE_WP2_270122.csv", row.names = FALSE)

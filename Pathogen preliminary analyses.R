@@ -59,6 +59,24 @@ pathogens_NOV21 <- read.csv("./data/raw_data/pathogens_NOV21.csv", sep = ";")
 str(pathogens_NOV21)
 summary(pathogens_NOV21)
 
+str(pathogens_NOV21)
+fishid <- pathogens_NOV21[c("alternate_num", "set_location", "common_name")]
+fishid <- fishid[!duplicated(fishid$alternate_num), ]
+summary(as.factor(fishid$common_name))
+fishid$common_name[fishid$common_name=='Brown trout'] <- 'Sea trout'
+fishid$common_name[fishid$common_name=='Atlantic'] <- 'Atlantic Salmon'
+
+
+#transform
+colnames(pathogens_NOV21)
+pathogens_NOV21 <-  pathogens_NOV21 %>%           # Applying functions of dplyr
+  mutate_at(c("ascv","c_b_cys","fl_psy","ic_mul","IcD","my_sp","pa_pse","pa_ther","pch_sal","pisck_sal","prv1","prv3","sch","te_dic","te_fin","te_mar"), ~(45-.))
+str(pathogens_NOV21)
+#pathogens <- pathogens[c(19:76)<0] <- 0
+pathogens_NOV21[,-c(1:18)][pathogens_NOV21[, -c(1:18)] < 0] <- 0
+pathogens_NOV21[,-c(1:18)][pathogens_NOV21[, -c(1:18)] == 999] <- 0
+pathogen_NOV21_raw <- pathogens_NOV21
+
 pathogens_NOV21$common_name[pathogens_NOV21$common_name=='Brown trout'] <- 'Sea trout'
 pathogens_NOV21$common_name[pathogens_NOV21$common_name=='Atlantic'] <- 'Atlantic Salmon'
 
@@ -81,8 +99,9 @@ colnames(pathogens_NOV21)
 table_kristi <- pathogens_NOV21[c("unique_id", "fluidigm_num", "alternate_num", "common_name", "dna_id", "hatchery_wild", "fork_length..mm.", "set_location", "station", "Transmitter.ID",  "capture_date")]
 write.csv(table_kristi,"./data/modified_data/table_kristi.csv", row.names = FALSE)
 
-
-count_groups <- pathogens_NOV21 %>%
+count_groups <- pathogens_NOV21[c("set_location", "common_name", "alternate_num")]
+count_groups <- count_groups[!duplicated(count_groups$alternate_num), ]
+count_groups <- count_groups %>%
   group_by(set_location, common_name) %>%
   dplyr::summarise(pathogen_precence = n())
 
@@ -107,7 +126,7 @@ tmp <- dplyr::select(pathogens_NOV21, common_name, set_location, hatchery_wild, 
 tmp <- pathogens_NOV21 %>%
   group_by(set_location, common_name, pathogen) %>%
   dplyr::summarise(pathogen_precence = n())
-
+tmp1 <- tmp[tmp$common_name=='Sea trout', ]
 str(tmp)
 str(pathogen_list)
 tmp <- merge(tmp, pathogen_list, by.x = "pathogen", by.y= "assay_name", all.x = TRUE, all.y = FALSE)
@@ -119,6 +138,27 @@ tmp$prop_positive[tmp$set_location=='Stjordal'& tmp$common_name=='Sea trout'] <-
 count_groups
 
 
+############################################################################
+#SEA TROUT
+############################################################################
+
+#Number with atleast one pathogen - SEA TROUT
+tmp1 <- pathogens_NOV21[pathogens_NOV21$common_name=='Sea trout', ] %>%
+    group_by(alternate_num)%>%
+    dplyr::summarise(pathogen_precence = n(), proportion = n()/117)
+
+
+#Summary data total all fjords - SEA TROUT
+tmp1 <- pathogens_NOV21[pathogens_NOV21$common_name=='Sea trout', ] %>%
+  group_by(pathogen) %>%
+  dplyr::summarise(pathogen_precence = n(), proportion = n()/117)
+
+#Summary data total all fjords - Salmon
+salmon_pathogens_detections <- pathogens_NOV21[pathogens_NOV21$common_name=='Atlantic Salmon', ] %>%
+  group_by(pathogen) %>%
+  dplyr::summarise(pathogen_precence = n(), proportion = n()/40)
+
+
 summary(tmp$set_location)
 
 trout <- tmp[tmp$common_name=='Sea trout', ]
@@ -127,7 +167,341 @@ salmon <- tmp[tmp$common_name=='Atlantic Salmon', ]
 #Sea trout
 p1 <- ggplot(trout, aes(y = agent_name, x = prop_positive*100, fill=set_location))+ theme_classic(base_size = 18) + geom_col(position = position_dodge(width = 0.9)) + theme(axis.text.x=element_text(angle=90, hjust=1))+ ggtitle("Pathogen prevalence") +xlab("Proportion prevalence (%)")+ ylab(element_blank())
 p1
-ggsave("./data/modified_data/pathogen_prevalence_trout_NOV-21.tiff", p1, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
+ggsave("./data/modified_data/pathogen_prevalence_trout_FEB-22.tiff", p1, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
+
+
+#prevalence level
+p3 <- 
+  ggplot(pathogens_NOV21[pathogens_NOV21$common_name=='Sea trout', ], aes(x=agent_name, y=measurement, color=set_location)) +
+  geom_boxplot()+
+  geom_jitter(width=0.15, alpha=0.5)+
+  labs(x="Pathogen name", y="CT value (reversed)") +
+  theme(legend.position="none")+
+  ylim(0, 45)+
+  coord_flip()+
+  theme_classic(base_size = 18)
+ggsave("./data/modified_data/pathogen_prevalence_level_trout_FEB-22.tiff", p3, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
+
+
+#Shannon diversity
+library(vegan)
+
+#Summary data total all fjords - SEA TROUT
+str(pathogen_NOV21_raw)
+tmp_2 <- pathogens_NOV21
+str(tmp_2)
+#tmp_2 <- pathogen_NOV21_raw[c(7, 13, 24:76)]
+#tmp_2 <- tmp_2[tmp_2$common_name=='Sea trout', ]
+
+#the following script canges all positive calues to 1
+tmp_3 <- tmp_2 %>% mutate_if(is.numeric, ~1 * (. > 0))
+str(tmp_2)
+tmp_3 <- tmp_3 %>%
+  group_by(alternate_num, pathogen) %>%
+  dplyr::summarise(set_location, common_name, count = n())
+tmp_3 <- tmp_3 %>%
+  group_by(set_location, common_name, alternate_num) %>%
+  dplyr::summarise(pathogen_count= sum(count))
+
+str(tmp_2)
+sea_trout <- tmp_2
+sea_trout
+
+str(tmp_2)
+tmp_2 <- tmp_2 %>%
+  group_by(alternate_num, pathogen) %>%
+  dplyr::summarise(set_location, common_name, ct_value_inverse = measurement)
+
+str(tmp_3)
+tmp_2 <- merge(tmp_2, tmp_3[c("alternate_num", "pathogen_count")], by = "alternate_num", all.x = TRUE)
+
+# combined_shan
+# str(combined_shan)
+# shapiro.test(shan_stjordal$shan_stjordal)
+# hist(shan_stjordal$shan_stjordal)
+# hist(shan_bolstad$shan_div)
+# hist(shan_beiarn$shan_div)
+# kruskal.test(combined_shan$shan_div, combined_shan$fjord)
+# kruskal.test(list(shan_stjordal$shan_stjordal, shan_bolstad$shan_div, shan_beiarn$shan_div))
+# 
+# boxplot(combined_shan$shan_div~combined_shan$fjord)
+# str(combined_shan)
+
+#rejoin fish with no pathogens
+
+#all
+str(tmp_2)
+shan_all <- tmp_2
+str(shan_all)
+library(tidyr)
+shan_all <- spread(shan_all, key = pathogen, value = ct_value_inverse)
+shan_all
+
+str(fishid)
+#fishid_trout <- fishid[c("alternate_num", "set_location", "common_name")]
+shan_all <- merge(shan_all, fishid, by=c("alternate_num", "set_location", "common_name"), all.y = TRUE)
+
+?vegan::diversity
+str(shan_all)
+#shan_all <- shan_all[c(1, 3:11)]
+shan_all[is.na(shan_all)] <- 0
+shan_all_div <- vegan::diversity(shan_all[5:11], index = "shannon")
+shan_all$shan_div <- shan_all_div
+str(shan_all)
+sea_trout <- shan_all[shan_all$common_name=='Sea trout', ]
+summary(as.factor(sea_trout$set_location))
+hist(sea_trout$shan_div[sea_trout$set_location=='Beiarfjorden'])
+boxplot(sea_trout$shan_div~sea_trout$set_location)
+kruskal.test(sea_trout$shan_div, sea_trout$set_location)
+
+
+#library(indicspecies)
+#data("wetland")
+#groups = c(rep(1, 17), rep(2, 14), rep(3,10))
+#groups
+#str(wetland)
+
+library(indicspecies)
+str(sea_trout)
+#indicator species sites for sea trout
+tmp <-  multipatt(sea_trout[c(4:18)], sea_trout$set_location, control = how(nperm=999))
+summary(tmp)
+
+
+
+#salmon
+summary(shan_all$common_name)
+salmon <- shan_all[shan_all$common_name=='Atlantic Salmon',]
+summary(salmon$set_location)
+kruskal.test(shan_all$shan_div[shan_all$set_location=='Bolstadfjorden'], shan_all$common_name[shan_all$set_location=='Bolstadfjorden'])
+
+
+shan_bolstadfjorden <- shan_all[shan_all$set_location=='Bolstadfjorden',]
+wilcox.test(shan_bolstadfjorden$shan_div ~ shan_bolstadfjorden$common_name)
+kruskal.test(shan_bolstadfjorden$shan_div, shan_bolstadfjorden$common_name)
+boxplot(shan_bolstadfjorden$shan_div~shan_bolstadfjorden$common_name)
+
+#indicator pathogens among salmo species in Bolstadfjord
+tmp <-  multipatt(shan_bolstadfjorden[c(4:18)], shan_bolstadfjorden$common_name, control = how(nperm=999))
+summary(tmp)
+
+
+
+
+#Non-metric multidimensional scaling
+str(shan_all)
+positive_fish <- shan_all[shan_all$pathogen_count>0, ]
+tmp_pos <- positive_fish[c(5:18)]
+tmp_pos[tmp_pos == 0] <- NA
+
+?metaMDS
+nmms <- metaMDS(positive_fish[c(5:18)], maxit = 100, permutations = 999, k = 2, autotransform = FALSE, engine = "isoMDS")
+
+plot(nmms, type = "t")
+
+
+data.scores <- as.data.frame(scores(nmms))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+data.scores$site <- rownames(data.scores)  # create a column of site names, from the rownames of data.scores
+data.scores <- cbind(data.scores, positive_fish)  #  add the grp variable created earlier
+head(data.scores)  #look at the data
+
+species.scores <- as.data.frame(scores(nmms, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+species.scores$species <- rownames(species.scores)  # create a column of species, from the rownames of species.scores
+head(species.scores)  #look at the data
+
+
+#plot ordination species
+ggplot() + 
+  geom_text(data=species.scores,aes(x=NMDS1,y=NMDS2,label=species),alpha=0.5) +  # add the species labels
+  geom_point(
+    data=data.scores, 
+    aes(
+      x=NMDS1, 
+      y=NMDS2,
+      colour=common_name), 
+    size=3,
+    alpha = 0.6)+
+  geom_point(
+    data=data.scores,
+    aes(
+      x=NMDS1,
+      y=NMDS2,
+      colour=common_name,
+      shape = common_name),
+    size=3.5,
+    alpha = 0.6) +
+  theme_light()+
+  ylab("NMDS2")+
+  xlab("NMDS1")+
+  stat_ellipse(data=data.scores, aes(x=NMDS1, y=NMDS2,color=common_name, group=common_name),type = "norm")
+
+
+#plot ordination species
+ggplot() + 
+  geom_text(data=species.scores,aes(x=NMDS1,y=NMDS2,label=species),alpha=0.5) +  # add the species labels
+  geom_point(
+    data=data.scores[data.scores$common_name=='Sea trout',], 
+    aes(
+      x=NMDS1, 
+      y=NMDS2,
+      colour=set_location), 
+    size=3,
+    alpha = 0.6)+
+  geom_point(
+    data=data.scores[data.scores$common_name=='Sea trout',],
+    aes(
+      x=NMDS1,
+      y=NMDS2,
+      colour=set_location,
+      shape = set_location),
+    size=3.5,
+    alpha = 0.6) +
+  theme_light()+
+  ylab("NMDS2")+
+  xlab("NMDS1")+
+  stat_ellipse(data=data.scores, aes(x=NMDS1, y=NMDS2,color=set_location, group=set_location),type = "norm")
+
+
+fish_metadata <- read.csv("./data/modified_data/summary_table_metadata_PACE_WP2_270122.csv")
+str(fish_metadata)
+str(data.scores)
+fish_metadata <- merge (fish_metadata, data.scores["alternate_num"])
+
+
+#run envfit to ordination 
+positive_trout <- positive_fish[positive_fish$common_name=='Sea trout', ]
+nmms <- metaMDS(positive_trout[c(5:18)], maxit = 100, permutations = 999, k = 2, autotransform = FALSE, engine = "isoMDS")
+data.scores <- as.data.frame(scores(nmms))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+data.scores$site <- rownames(data.scores)  # create a column of site names, from the rownames of data.scores
+data.scores <- cbind(data.scores, positive_trout)  #  add the grp variable created earlier
+head(data.scores)  #look at the data
+
+species.scores <- as.data.frame(scores(nmms, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+species.scores$species <- rownames(species.scores)  # create a column of species, from the rownames of species.scores
+head(species.scores)  #look at the data
+
+str(trout_metadata)
+trout_metadata <- fish_metadata[fish_metadata$common_name=='Sea trout',]
+envfit_1 <- (envfit(nmms, trout_metadata[c("common_name", "fork_length..mm.","skin_colour", "daysurv")], permutations = 999, na.rm = TRUE))
+en_coord_cont = as.data.frame(scores(envfit_1, "vectors")) * ordiArrowMul(envfit_1)
+en_coord_cat = as.data.frame(scores(envfit_1, "factors")) * ordiArrowMul(envfit_1)
+envfit_2 <- (envfit(nmms, trout_metadata[c("freshwater_entry_days")], permutations = 999, na.rm = TRUE))
+en_coord_cont2 = as.data.frame(scores(envfit_2, "vectors")) * ordiArrowMul(envfit_2)
+trout_metadata[c("fork_length..mm.")]
+str(data.scores)
+
+gg = ggplot(data = data.scores, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(data = data.scores, aes(colour = set_location), size = 3, alpha = 0.5) + 
+  geom_text(data=species.scores,aes(x=NMDS1,y=NMDS2,label=species),alpha=0.5) +  # add the species labels
+  scale_colour_manual(values = c("orange", "steelblue","purple")) + 
+  theme(axis.title = element_text(size = 10, face = "bold", colour = "grey30"), 
+        panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+        axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+        legend.title = element_text(size = 10, face = "bold", colour = "grey30"), 
+        legend.text = element_text(size = 9, colour = "grey30")) +
+  labs(colour = "Season")+
+  stat_ellipse(data=data.scores, aes(x=NMDS1, y=NMDS2,color=set_location, group=set_location),type = "norm")
+
+gg
+
+
+gg = ggplot(data = data.scores, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(data = data.scores, aes(colour = set_location), size = 3, alpha = 0.5) + 
+  scale_colour_manual(values = c("orange", "steelblue", "pink"))  + 
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+              data = en_coord_cont, size =1, alpha = 0.5, colour = "grey30") +
+  geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+              data = en_coord_cont2, size =1, alpha = 0.5, colour = "grey30") +
+  geom_point(data = en_coord_cat, aes(x = NMDS1, y = NMDS2), 
+             shape = "diamond", size = 4, alpha = 0.6, colour = "navy") +
+  geom_text(data = en_coord_cat, aes(x = NMDS1, y = NMDS2+0.04), 
+            label = row.names(en_coord_cat), colour = "navy", fontface = "bold") + 
+  geom_text(data = en_coord_cont, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+            fontface = "bold", label = row.names(en_coord_cont)) + 
+  geom_text(data = en_coord_cont2, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
+            fontface = "bold", label = row.names(en_coord_cont2)) +
+  theme(axis.title = element_text(size = 10, face = "bold", colour = "grey30"), 
+        panel.background = element_blank(), panel.border = element_rect(fill = NA, colour = "grey30"), 
+        axis.ticks = element_blank(), axis.text = element_blank(), legend.key = element_blank(), 
+        legend.title = element_text(size = 10, face = "bold", colour = "grey30"), 
+        legend.text = element_text(size = 9, colour = "grey30")) + 
+  labs(colour = "Season")+
+  stat_ellipse(data=data.scores, aes(x=NMDS1, y=NMDS2,color=set_location, group=set_location),type = "norm")
+
+
+gg
+
+
+ggplot() + 
+  #geom_polygon(data=data.scores,aes(x=NMDS1,y=NMDS2,fill=common_name,group=common_name),alpha=0.30) + # add the convex hulls
+  geom_text(data=species.scores,aes(x=NMDS1,y=NMDS2,label=species),alpha=0.5) +  # add the species labels
+  stat_ellipse(type='t',size =1)+ ##draws 95% confidence interval ellipses
+  geom_point(data=data.scores,aes(x=NMDS1,y=NMDS2,shape=common_name,colour=common_name),size=4) + # add the point markers
+  scale_colour_manual(values=c("A" = "red", "B" = "blue")) +
+  coord_equal() +
+  theme_bw() + 
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(size=18), # remove x-axis labels
+        axis.title.y = element_text(size=18), # remove y-axis labels
+        panel.background = element_blank(), 
+        panel.grid.major = element_blank(),  #remove major-grid labels
+        panel.grid.minor = element_blank(),  #remove minor-grid labels
+        plot.background = element_blank())
+
+##pull points from MDS
+NMDS1 <- nmms$points[,1] ##also found using scores(birdMDS)
+NMDS2 <- nmms$points[,2]
+str(nmms)
+nmms$species
+
+species <- as.data.frame(nmms$species)
+names <- rownames(species)
+rownames(species) <- NULL
+species <- cbind(names,species)
+
+nmms_plot<-cbind(positive_fish, NMDS1, NMDS2)
+
+str(nmms)
+
+str(nmms_plot)
+
+p<-ggplot(nmms_plot, aes(NMDS1, NMDS2, color=common_name))+
+  geom_point(position=position_jitter(.1), shape=3)+##separates overlapping points
+  geom_point(data=species,mapping = aes(x=V1, y=V2))+
+  stat_ellipse(type='t',size =1)+ ##draws 95% confidence interval ellipses
+  theme_minimal()
+p
+
+plot(nmms, display = c("sites", "species"), choices = c(1,2), type = "p", shrink = FALSE)
+
+
+p<-ggplot(nmms_plot, aes(NMDS1, NMDS2, color=common_name))+
+  stat_ellipse(type='t',size =1)+
+  theme_minimal()+geom_label(data=species,aes(V1, V2, label=names), position=position_jitter(.35))
+p
+
+
+hist(nmms$ndis)
+
+#shan_all$pathogen_count <- shan_all$ascv+shan_all$c_b_cys+shan_all$fl_psy+shan_all$ic_mul+shan_all$IcD+shan_all$my_sp+shan_all$pa_pse+shan_all$pa_ther+shan_all$pch_sal+shan_all$pisck_sal+shan_all$prv1+shan_all$prv3+shan_all$sch
+#colnames(shan_all)
+
+############################################################################
+############################################################################
+
+
+
+
+
+
+
+
+
+
+
+
 
 #Salmon
 p2 <- ggplot(salmon, aes(y = agent_name, x = prop_positive*100, fill=set_location))+ theme_classic(base_size = 18) + geom_col(position = position_dodge(width = 0.9)) + theme(axis.text.x=element_text(angle=90, hjust=1))+ ggtitle("Pathogen prevalence") +xlab("Proportion prevalence (%)")+ ylab(element_blank())
@@ -169,6 +543,20 @@ ggsave("./data/modified_data/pathogen_prevalence_level_trout_NOV-21.tiff", p3, u
 p4 <- ggplot(pathogens_NOV21[pathogens_NOV21$common_name=='Sea trout' & pathogens_NOV21$measurement<5000, ], aes(y = agent_name, x = measurement, col=set_location))+ theme_classic(base_size = 18) + geom_point(position = position_dodge(width = 0.9)) + theme(axis.text.x=element_text(angle=90, hjust=1))+ ggtitle("Pathogen prevalence") +xlab("Proportion prevalence (%)")+ ylab(element_blank())
 p4
 ggsave("./data/modified_data/pathogen_prevalence_level_5000_trout_NOV-21.tiff", p4, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
+
+
+
+p3 <- 
+  ggplot(pathogens_NOV21[pathogens_NOV21$common_name=='Sea trout', ], aes(x=agent_name, y=measurement, color=set_location)) +
+  geom_boxplot()+
+  geom_jitter(width=0.15, alpha=0.5)+
+  labs(x="Pathogen name", y="CT value (reversed)") +
+  theme(legend.position="none")+
+  ylim(0, 45)+
+  coord_flip()+
+  theme_classic(base_size = 18)
+ggsave("./data/modified_data/pathogen_prevalence_level_trout_FEB-22.tiff", p3, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
+
 ######################################################################################################
 
 
