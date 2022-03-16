@@ -182,6 +182,7 @@ p1
 ggsave("./data/modified_data/pathogen_prevalence_trout_FEB-22.tiff", p1, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
 
 
+str()
 #prevalence level
 p3 <- 
   ggplot(pathogens_NOV21[pathogens_NOV21$common_name=='Sea trout', ], aes(x=agent_name, y=measurement, color=set_location)) +
@@ -194,6 +195,7 @@ p3 <-
   theme_classic(base_size = 18)
 ggsave("./data/modified_data/pathogen_prevalence_level_trout_FEB-22.tiff", p3, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
 
+p3
 
 #Shannon diversity
 library(vegan)
@@ -386,7 +388,7 @@ fish_metadata <- read.csv("./data/modified_data/summary_table_metadata_PACE_WP2_
 str(fish_metadata)
 str(data.scores)
 fish_metadata <- merge (fish_metadata, data.scores["alternate_num"])
-
+fish_metadata$daysurv <- as.numeric(fish_metadata$daysurv)
 
 species.scores <- as.data.frame(scores(nmms, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
 species.scores$species <- rownames(species.scores)  # create a column of species, from the rownames of species.scores

@@ -22,16 +22,20 @@ table_kristi$tagging_habitat[table_kristi$set_location=='Stjordal'] <- 'estuary'
 table_kristi$tagging_habitat[table_kristi$set_location=='Stjordal'] <- 'estuary'
 str(table_kristi)
 
-beiarfjorden_fish <- read.csv("C:/Rdata/Git/Beiarfjorden_2/data/modified_data/beiarfjorden_tagging_kristie.csv", sep = ",")
+beiarfjorden_fish <- read.csv("C:/Rdata/Github/Beiarfjorden_2/data/modified_data/beiarfjorden_tagging_kristie.csv", sep = ",")
 str(beiarfjorden_fish)
-names(beiarfjorden_fish) <- c("transmitterID", "gill_sample",  "skin_colour", "tagging_temp","Date", "max_tracking_date", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "n_station", "n_all", "freshwater_entry", "freshwater_entry_days")
+beiarfjorden_fish$transmitterID <- beiarfjorden_fish$TransmitterID
+#beiarfjorden_fish$size <- beiarfjorden_fish$Length..mm.
+#beiarfjorden_fish$mass <- beiarfjorden_fish$Mass..g.
+#beiarfjorden_fish$tagging_temp <- beiarfjorden_fish$water_temperature
+#names(beiarfjorden_fish) <- c("transmitterID", "gill_sample",  "skin_colour", "tagging_temp","Date", "max_tracking_date", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "n_station", "n_all", "freshwater_entry", "freshwater_entry_days")
 beiarfjorden_fish <- beiarfjorden_fish[c("transmitterID", "gill_sample", "tagging_temp", "skin_colour", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "freshwater_entry", "freshwater_entry_days")]
 
-hellstranda_fish <- read.csv("C:/Rdata/Git/hellstranda/data/modified_data/stjordal_tagging_kristie.csv", sep = ",")
+hellstranda_fish <- read.csv("C:/Rdata/Github/hellstranda/data/modified_data/stjordal_tagging_kristie.csv", sep = ",")
 str(hellstranda_fish)
 hellstranda_fish <- hellstranda_fish[c("transmitterID", "gill_sample", "tagging_temp", "skin_colour", "tagging_date", "daysurv", "avg_temp", "min_temp", "max_temp", "freshwater_entry", "freshwater_entry_days")]
 
-bolstad_fish <-  read.csv("C:/Rdata/Git/PACE_WP2_Bolstadfjord/data/modified_data/bolstadfjorden_tagging_kristie.csv", sep = ",")
+bolstad_fish <-  read.csv("C:/Rdata/Github/PACE_WP2_Bolstadfjord/data/modified_data/bolstadfjorden_tagging_kristie.csv", sep = ",")
 str(bolstad_fish)
 str(table_kristi)
 summary(as.factor(table_kristi$common_name))
@@ -120,3 +124,4 @@ combined_table$tagging_habitat[combined_table$set_location=='Bolstadfjorden'& co
 combined_table$tagging_habitat[combined_table$set_location=='Bolstadfjorden'& combined_table$station=='Osen'] <- 'river'
 
 write.csv(combined_table, "./data/modified_data/summary_table_metadata_PACE_WP2_270122.csv", row.names = FALSE)
+
