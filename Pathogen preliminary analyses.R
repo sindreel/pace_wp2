@@ -4,7 +4,7 @@
 #Clear memory
 rm(list = ls(all = TRUE))
 ###########################################################
-
+options(scipen=999)
 #test
 
 #########################################################################
@@ -35,16 +35,6 @@ download.file(url=pathogen_list,destfile="./data/raw_data/pathogen_list.csv")
 #Pahtogen prevalence analyses 11-2021:
 pathogens_NOV21 <- "https://ntnu.box.com/shared/static/8spgc94zm6wqk2etfuynyxhrlrg34akf.csv" #Uploaded new version 18.12.20
 download.file(url=pathogens_NOV21,destfile="./data/raw_data/pathogens_NOV21.csv")  
-
-
-
-#Gene expression data - THESE NEEDS TO BE UPDATED.
-#URL_4089_4090_Sasa_log2_SasaAQ_1 <- "https://ntnu.box.com/shared/static/wycb8ibkk58k2nb2mvyey9jr7rir6m3o.csv" #Uploaded new version 18.12.20
-#download.file(url=URL_4089_4090_Sasa_log2_SasaAQ_1,destfile="./data/raw_data/4089_4090_Sasa_log2_SasaAQ_1.csv")  
-
-#URL_4089_4090_Satr_log2_SasaAQ_1 <- "https://ntnu.box.com/shared/static/5eax7kkduvt606h9bzmgpwr30oldk6d3.csv" #Uploaded new version 18.12.20
-#download.file(url=URL_4089_4090_Satr_log2_SasaAQ_1,destfile="./data/raw_data/4089_4090_Satr_log2_SasaAQ_1.csv")  
-###########################################################
 
 
 library(dplyr)
@@ -376,6 +366,7 @@ ggplot() +
 
 #run envfit to ordination 
 positive_trout <- positive_fish[positive_fish$common_name=='Sea trout', ]
+str(positive_trout)
 #positive_trout[c(5:18)] <- positive_trout[c(5:18)] %>% mutate_if(is.numeric, ~1 * (. > 0))#changes all positive calues to 1
 
 nmms <- metaMDS(positive_trout[c(5:18)], maxit = 100, permutations = 999, k = 2, autotransform = FALSE, engine = "isoMDS")
@@ -396,7 +387,9 @@ head(species.scores)  #look at the data
 
 str(trout_metadata)
 trout_metadata <- fish_metadata[fish_metadata$common_name=='Sea trout',]
-envfit_1 <- (envfit(nmms, trout_metadata[c("common_name", "fork_length..mm.","skin_colour", "daysurv")], permutations = 999, na.rm = TRUE))
+trout_metadata <- merge(trout_metadata, shan_all[c("alternate_num", "shan_div")], by = "alternate_num")
+str(trout_metadata)
+envfit_1 <- (envfit(nmms, trout_metadata[c("common_name", "fork_length..mm.","skin_colour", "daysurv", "set_location", "shan_div")], permutations = 999, na.rm = TRUE))
 envfit_1
 en_coord_cont = as.data.frame(scores(envfit_1, "vectors")) * ordiArrowMul(envfit_1)
 en_coord_cat = as.data.frame(scores(envfit_1, "factors")) * ordiArrowMul(envfit_1)
@@ -456,6 +449,15 @@ tmp <- merge(fish_metadata, shan_all, by = "alternate_num")
 ggplot(tmp, aes(x=tmp$fork_length..mm., y=tmp$pathogen_count)) + geom_smooth(method="lm") + theme_classic(base_size = 18) + geom_point() + xlab("Body size (mm)") + ylab("Number of detected pathogens")  +ylim (0,5) + ggtitle("d") +xlab(element_blank())
 ggplot(tmp, aes(x=tmp$fork_length..mm., y=tmp$pathogen_count, fill= common_name.x)) + geom_smooth(method="lm") + theme_classic(base_size = 18) + geom_point() + xlab("Body size (mm)") + ylab("Number of detected pathogens")  +ylim (0,5) + ggtitle("d") +xlab(element_blank())
 ggplot(tmp, aes(x=tmp$fork_length..mm., y=tmp$pathogen_count, fill= set_location.x)) + geom_smooth(method="lm") + theme_classic(base_size = 18) + geom_point() + xlab("Body size (mm)") + ylab("Number of detected pathogens")  +ylim (0,5) + ggtitle("d") +xlab(element_blank())
+#Note ingen effekt av kroppslengde
+tmp2 <- tmp[which (tmp$shan_div>0),]
+ggplot(tmp2, aes(x=tmp2$fork_length..mm., y=tmp2$shan_div, fill= set_location.x)) + geom_smooth(method="lm") + theme_classic(base_size = 18) + geom_point() + xlab("Body size (mm)") + ylab("Shannon diversity")  +ylim (0.6,0.7) + ggtitle("d") +xlab(element_blank())
+ggplot(tmp, aes(x=tmp$daysurv, y=tmp$shan_div, fill= set_location.x)) + geom_smooth(method="lm") + theme_classic(base_size = 18) + geom_point() + xlab("Body size (mm)") + ylab("Shannon diversity")  + ggtitle("d") +xlab(element_blank())
+ggplot(tmp, aes(x=tmp$fork_length..mm., y=tmp$freshwater_entry_days, fill= set_location.x)) + geom_smooth(method="lm") + theme_classic(base_size = 18) + geom_point() + xlab("Body size (mm)") + ylab("Shannon diversity")  + ggtitle("d") +xlab(element_blank())#+ylim (0,300)
+
+#NOTE dette er ikke noe interessant
+
+
 
 str(tmp)
 
