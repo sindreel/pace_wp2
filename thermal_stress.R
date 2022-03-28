@@ -331,9 +331,19 @@ f
 
 
 str(pca_scores_all)
+pca_scores_all$thermal_stress_comp1 <- pca_scores_all$Comp.1
+pca_scores_all$thermal_stress_comp2 <- pca_scores_all$Comp.2
 
+fitchip_wide <- fitchip_long[c("fit_chip_id", "Temperature", "gill_id", "gene_marker", "measurement")]
+#fitchip_wide <- fitchip_wide[which (complete.cases(fitchip_long)), ]
+fitchip_wide <- spread(fitchip_wide, gene_marker, measurement)
 
-write.csv(pca_scores_all, "./data/modified_data/thermal_stress_expression.csv", row.names = FALSE)
+str(fitchip_wide)
+
+export_file <- merge(fitchip_wide, pca_scores_all[c("gill_id", "thermal_stress_comp1", "thermal_stress_comp2")], by = "gill_id")
+str(export_file)
+
+write.csv(export_file, "./data/modified_data/thermal_stress_expression.csv", row.names = FALSE)
 
 
 
