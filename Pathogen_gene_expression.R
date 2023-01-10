@@ -23,9 +23,9 @@ download.file(url=fitchip_data,destfile="./data/raw_data/fitchip_data_kristi_pre
 ##I have analyzed this dataset several times, and in this analysis I removed all assays with measured efficiencies not between 0.8-1.2.  This brought us down to 43 assays and impacted our ability to recognize osmotic variation--i.e. FW vs SW fish. 
 
 #I generally take three approaches to the data
-  #General PCAs over all markers to see if any obvious known signatures come out in the data
-    #With Pacific salmon, genearally the imminent mortality signature will pull out right away if it is there.  It does not appear to be there in your data
-    #What I have seen obviously with this approach is the thermal stress signature. See the tab general PCA 
+#General PCAs over all markers to see if any obvious known signatures come out in the data
+#With Pacific salmon, genearally the imminent mortality signature will pull out right away if it is there.  It does not appear to be there in your data
+#What I have seen obviously with this approach is the thermal stress signature. See the tab general PCA 
 
 #I also analyze the biomarker panels of interest themselves to see what pulls out. I look to see if they are correlated, which they should be if present.  
 #Ideally this analysis would also utilize the control samples, but they were too out of range to work in this case
@@ -79,12 +79,12 @@ fitchip_data$Temperature <- fitchip_data$temperature
 library(tidyr)
 names(fitchip_data)
 fitchip_long <- gather(fitchip_data, gene_marker, measurement, CL_H2EB1_672,CL_ICLP2_674,CL_PSMB7_686,IF_ES1_668,IF_txn_683,      
-    IM_ARRDC2_663,IM_EPD_667,IM_GLUL_670,IM_NUPR1_677,IM_ODC1_678,IM_TAGLN3_681,   
-    IM_napepld_676,IM_tgfb_682,IS_B2M_182,IS_C5aR_577,IS_CD83_579,IS_IL1B_295,     
-    IS_RIG1_361,MRS_ATP5G3_181,MRS_C7_189,MRS_FYB_241,MRS_HTATIP_272,MRS_NKAB2_328,   
-    OS_CCL4_195,OS_CFTR_I_206,OS_HBA_254,OS_NDUFB2_322,OS_UBA1_605,TM_FKBP10_4_583, 
-    TM_Hsp90a_15_269,TM_HSP90a_6_271,TM_SERPIN20_379,TM_SERPIN_9_380,TM_HSP70_267,VDD_HERC6_77,   
-    VDD_IFI44A_81,VDD_IFIT5_2_83,VDD_MX_86,VDD_NFX_87)
+                       IM_ARRDC2_663,IM_EPD_667,IM_GLUL_670,IM_NUPR1_677,IM_ODC1_678,IM_TAGLN3_681,   
+                       IM_napepld_676,IM_tgfb_682,IS_B2M_182,IS_C5aR_577,IS_CD83_579,IS_IL1B_295,     
+                       IS_RIG1_361,MRS_ATP5G3_181,MRS_C7_189,MRS_FYB_241,MRS_HTATIP_272,MRS_NKAB2_328,   
+                       OS_CCL4_195,OS_CFTR_I_206,OS_HBA_254,OS_NDUFB2_322,OS_UBA1_605,TM_FKBP10_4_583, 
+                       TM_Hsp90a_15_269,TM_HSP90a_6_271,TM_SERPIN20_379,TM_SERPIN_9_380,TM_HSP70_267,VDD_HERC6_77,   
+                       VDD_IFI44A_81,VDD_IFIT5_2_83,VDD_MX_86,VDD_NFX_87)
 
 str(fitchip_long)
 
@@ -95,9 +95,6 @@ fitchip_long$measurement <- as.numeric(fitchip_long$measurement)
 summary(as.factor(fitchip_long$fitchip_panel))
 fitchip_long$fitchip_panel[fitchip_long$fitchip_panel=='MR'] <- 'MRS'
 fitchip_long$fitchip_panel[fitchip_long$fitchip_panel=='VD'] <- 'VDD'
-
-
-saveRDS(fitchip_long, "./data/modified_data/fitchip_long.rds")
 
 
 thermal_stress <- fitchip_long#[fitchip_long$fitchip_panel=='TM' & fitchip_long$Temperature!='', ]
@@ -137,7 +134,7 @@ mydata %>% sample_n(6)
 # Transform the data into long format
 # Put all variables in the same column except `Species`, the grouping variable
 mydata.long <- mydata #%>%
-  #pivot_longer(-Temperature, names_to = "variables", values_to = "value")
+#pivot_longer(-Temperature, names_to = "variables", values_to = "value")
 mydata.long %>% sample_n(6)
 
 str(mydata.long)
@@ -196,18 +193,17 @@ ggroc(list(TM_Hsp90a_15_269 = roc1, TM_SERPIN20_379 = roc2, TM_HSP70_267 = roc3,
 ??ggroc
 
 #Do subset using genes suggested by Kristi in pane "Thermal stress 2"
-str(fitchip_long)
-summary(as.factor(fitchip_long$fitchip_panel))
 
-# thermal_stress <- fitchip_long[(fitchip_long$gene_marker=='TM_Hsp90a_15_269'
-#                                |fitchip_long$gene_marker=='TM_SERPIN20_379'
-#                                |fitchip_long$gene_marker=='TM_HSP70_267'
-#                                |fitchip_long$gene_marker=='VDD_HERC6_77'
-#                                |fitchip_long$gene_marker=='IM_ARRDC2_663')
-#                                  &fitchip_long$Temperature!='', ]
+thermal_stress <- fitchip_long[(fitchip_long$gene_marker=='TM_Hsp90a_15_269'
+                                |fitchip_long$gene_marker=='TM_SERPIN20_379'
+                                |fitchip_long$gene_marker=='TM_HSP70_267'
+                                |fitchip_long$gene_marker=='VDD_HERC6_77'
+                                |fitchip_long$gene_marker=='IM_ARRDC2_663')
+                               &fitchip_long$Temperature!='', ]
 
 
-thermal_stress <- fitchip_long[fitchip_long$fitchip_panel=='TM',]
+
+
 ########################################################
 #PCA Analysis
 ########################################################
@@ -223,19 +219,17 @@ thermal_wide <- spread(thermal_wide, gene_marker, measurement)
 
 #GENE VDD_RSAD IS MISSING IN ONE OF THE DATASETS
 #str(thermal_stress)
-str(thermal_wide)
-
-#thermal_pca <- thermal_wide[c("gill_id", "Temperature", "TM_Hsp90a_15_269","TM_SERPIN20_379","TM_HSP70_267","VDD_HERC6_77","IM_ARRDC2_663")]
-thermal_pca <- thermal_wide[c(2:9)]
+#str(fitchip_data)
+thermal_pca <- thermal_wide[c("gill_id", "Temperature", "TM_Hsp90a_15_269","TM_SERPIN20_379","TM_HSP70_267","VDD_HERC6_77","IM_ARRDC2_663")]
 #thermal_pca <- str_replace_all(thermal_pca[c(3:9)], ',', '.')
-str(thermal_pca)
+
 
 thermal_pca <- thermal_pca[which (complete.cases(thermal_pca)), ]
 thermal_pca$rowid <- seq.int(nrow(thermal_pca))
 str(thermal_pca)
 
 str(thermal_pca)
-pca_fitchip <- princomp(thermal_pca[c(3:8)])
+pca_fitchip <- princomp(thermal_pca[c(3:7)])
 
 
 
@@ -264,25 +258,18 @@ contrib <- var$contrib
 pca_fitchip
 str(pca_fitchip)
 str(pca_scores_all)
-fviz_pca_biplot <- fviz_pca_biplot(pca_fitchip, label = "var", habillage = pca_scores_all$Temperature, addEllipses=FALSE, ellipse.level=0.95)
-
-ggsave("./data/modified_data/PCA_thermal_stress.tiff", fviz_pca_biplot, units="cm", width=20, height=15, dpi=600, compression = 'lzw')
+fviz_pca_biplot(pca_fitchip, label = "var", habillage = pca_scores_all$Temperature, addEllipses=FALSE, ellipse.level=0.95)
+#ggsave("PCA_physiology_07.01.2020.tiff", units="cm", width=20, height=24, dpi=600, compression = 'lzw')
 
 
 c <- ggplot(pca_scores_all, aes(x=Comp.1, y=Comp.2, col=Temperature)) + geom_point()+ theme_classic(base_size = 18)+ theme(legend.position = "top") + ggtitle("Gen expression thermal stress indicators") + labs(fill ="Temperature")+ xlab("Gene") 
 c
-?ggsave
-ggsave("./data/modified_data/boxplot_thermal_stress.tiff", c, units="cm", width=15, height=15, dpi=600, compression = 'lzw')
-
 
 d <- ggplot(pca_scores_all, aes(x=Temperature, y=Comp.1, col=Temperature)) + geom_boxplot()+ theme_classic(base_size = 18)+ theme(legend.position = "top") + ggtitle("Gen expression thermal stress indicators") + labs(fill ="Temperature")+ xlab("Gene") 
 d
 
-
-
 e <- ggplot(pca_scores_all, aes(x=Temperature, y=Comp.2, col=Temperature)) + geom_boxplot()+ theme_classic(base_size = 18)+ theme(legend.position = "top") + ggtitle("Gen expression thermal stress indicators") + labs(fill ="Temperature")+ xlab("Gene") 
 e
-
 
 
 str(pca_scores_all)
@@ -291,15 +278,9 @@ str(pca_scores_all)
 str(metadata)
 str(pca_scores_all)
 str(metadata)
-pca_scores_all <- merge(pca_scores_all, metadata[c("transmitterID","max_temp", "fork_length..mm.", "dna_id", "set_location")], by.x ="gill_id", by.y="dna_id")
+pca_scores_all <- merge(pca_scores_all, metadata[c("max_temp", "dna_id", "set_location")], by.x ="gill_id", by.y="dna_id")
 str(pca_scores_all)
-pca_scores_all$fork_length <- pca_scores_all$fork_length..mm.
 
-pca_output <- pca_scores_all[c("transmitterID", "Comp.1", "Comp.2")]
-names(pca_output) <- c("transmitterID", "thermal_comp1", "thermal_comp2")
-
-paste0(as.character(ID_list[i], "comp1"))
-pt[[i]] <- pca_output
 
 mean_comp1 <- mean(pca_scores_all$Comp.1)
 sd_comp1 <- sd(pca_scores_all$Comp.1)
@@ -308,25 +289,13 @@ mean_comp1-sd_comp1
 
 
 f <- ggplot(pca_scores_all, aes(x=max_temp, y=Comp.1, col = set_location)) + geom_point()+ geom_smooth(method="lm")+ theme_classic(base_size = 18)+ 
-    theme(legend.position = "right") + ggtitle("Gene expression for thermal stress") + 
-    xlab("Temperature (C)")+ geom_hline(yintercept=c(mean_comp1+sd_comp1, mean_comp1-sd_comp1), linetype="dotted") 
-f
-
-
-
-f <- ggplot(pca_scores_all, aes(x=max_temp, y=Comp.1, col = set_location)) + geom_point()+ geom_smooth()+ theme_classic(base_size = 18)+ 
   theme(legend.position = "right") + ggtitle("Gene expression for thermal stress") + 
   xlab("Temperature (C)")+ geom_hline(yintercept=c(mean_comp1+sd_comp1, mean_comp1-sd_comp1), linetype="dotted") 
 f
 
+
+
 str(pca_scores_all)
-
-f <- ggplot(pca_scores_all, aes(x=fork_length, y=Comp.1, col = set_location)) + geom_point()+ geom_smooth(method="lm")+ theme_classic(base_size = 18)+ 
-  theme(legend.position = "right") + ggtitle("Gene expression for thermal stress") + 
-  xlab("fork_length (mm)")+ geom_hline(yintercept=c(mean_comp1+sd_comp1, mean_comp1-sd_comp1), linetype="dotted") 
-f
-
-
 
 f <- ggplot(pca_scores_all, aes(x=max_temp, y=TM_Hsp90a_15_269)) + geom_point()+ geom_smooth()+ theme_classic(base_size = 18)+ 
   theme(legend.position = "top") + ggtitle("Gen expression thermal stress indicators") + labs(fill ="Temperature")+

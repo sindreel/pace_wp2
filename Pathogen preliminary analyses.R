@@ -44,6 +44,7 @@ library(gridExtra)
 
 #Read pathogen list
 pathogen_list <- read.csv("./data/raw_data/pathogen_list.csv", sep = ";")
+pathogen_list$agent_name[pathogen_list$agent_name=='Piscine orthoreovirus'] <- 'Piscine orthoreovirus -3'
 str(pathogen_list)
 summary(as.factor(pathogen_list$agent_name))
 
@@ -104,20 +105,21 @@ count_groups <- count_groups %>%
 #Add fish info and behavioral data
 
 
-
-
-
-
 pathogens_NOV21 <- gather(pathogens_NOV21, pathogen, measurement, ascv:te_mar, factor_key=TRUE)
 
 summary(pathogens_NOV21$common_name)
 
 str(pathogens_NOV21)
 
+summary(pathogens_NOV21$measurement)
+
+saveRDS(pathogens_NOV21, "./data/modified_data/pathogens.RDS")
+
+
 pathogens_NOV21 <- pathogens_NOV21[which (!is.na(pathogens_NOV21$measurement)), ]
 pathogens_NOV21 <- pathogens_NOV21[which (pathogens_NOV21$measurement!=0), ]
 
-
+write.csv(pathogens_NOV21, "./data/modified_data/pathogen_prevalence_NOV21.csv", row.names = FALSE)
 
 
 ###########################################################################
@@ -171,8 +173,13 @@ p1 <- ggplot(trout, aes(y = agent_name, x = prop_positive*100, fill=set_location
 p1
 ggsave("./data/modified_data/pathogen_prevalence_trout_FEB-22.tiff", p1, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
 
+str(trout)
 
-str()
+str(pathogen_list)
+str(pathogens_NOV21)
+pathogens_NOV21 <- merge(pathogens_NOV21, pathogen_list[c("assay_name", "agent_name")], by.x = "pathogen", by.y = "assay_name")
+
+
 #prevalence level
 p3 <- 
   ggplot(pathogens_NOV21[pathogens_NOV21$common_name=='Sea trout', ], aes(x=agent_name, y=measurement, color=set_location)) +
@@ -186,6 +193,33 @@ p3 <-
 ggsave("./data/modified_data/pathogen_prevalence_level_trout_FEB-22.tiff", p3, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
 
 p3
+##################################################################
+#Salmon
+p4 <- ggplot(salmon, aes(y = agent_name, x = prop_positive*100, fill=set_location))+ theme_classic(base_size = 18) + geom_col(position = position_dodge(width = 0.9)) + theme(axis.text.x=element_text(angle=90, hjust=1))+ ggtitle("Pathogen prevalence") +xlab("Proportion prevalence (%)")+ ylab(element_blank())
+p4
+ggsave("./data/modified_data/pathogen_prevalence_trout_FEB-22.tiff", p1, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
+
+str(trout)
+
+str(pathogen_list)
+str(pathogens_NOV21)
+pathogens_NOV21 <- merge(pathogens_NOV21, pathogen_list[c("assay_name", "agent_name")], by.x = "pathogen", by.y = "assay_name")
+
+
+#prevalence level
+p5 <- 
+  ggplot(pathogens_NOV21[pathogens_NOV21$common_name=='Atlantic Salmon', ], aes(x=agent_name, y=measurement, color=set_location)) +
+  geom_boxplot()+
+  geom_jitter(width=0.15, alpha=0.5)+
+  labs(x="Pathogen name", y="CT value (reversed)") +
+  theme(legend.position="none")+
+  ylim(0, 45)+
+  coord_flip()+
+  theme_classic(base_size = 18)
+#ggsave("./data/modified_data/pathogen_prevalence_level_trout_FEB-22.tiff", p3, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
+
+p5
+
 
 #Shannon diversity
 library(vegan)
@@ -388,8 +422,29 @@ head(species.scores)  #look at the data
 str(trout_metadata)
 trout_metadata <- fish_metadata[fish_metadata$common_name=='Sea trout',]
 trout_metadata <- merge(trout_metadata, shan_all[c("alternate_num", "shan_div")], by = "alternate_num")
+gene_expression <- read.csv("./data/modified_data/thermal_stress_expression.csv", sep = ",")
+str(gene_expression)
+
+trout_metadata <- merge(trout_metadata, gene_expression, by.x = "dna_id", by.y = "gill_id", all.x = TRUE)
+
+#Export trout_metadata
+write.csv(trout_metadata, "./data/modified_data/trout_metadata.csv", row.names = FALSE)
+
+names(gene_expression)
+
+envfit_0 <- (envfit(nmms, trout_metadata[c("CL_H2EB1_672","CL_ICLP2_674","CL_PSMB7_686",
+                                           "IF_ES1_668","IF_txn_683","IM_ARRDC2_663","IM_EPD_667","IM_GLUL_670","IM_napepld_676",
+                                           "IM_NUPR1_677","IM_ODC1_678","IM_TAGLN3_681","IM_tgfb_682","IS_B2M_182","IS_C5aR_577",
+                                           "IS_CD83_579", "IS_IL1B_295" ,"IS_RIG1_361" ,"MRS_ATP5G3_181","MRS_C7_189","MRS_FYB_241", 
+                                           "MRS_HTATIP_272","MRS_NKAB2_328","OS_CCL4_195","OS_CFTR_I_206","OS_HBA_254","OS_NDUFB2_322",
+                                           "OS_UBA1_605","TM_FKBP10_4_583","TM_HSP70_267","TM_Hsp90a_15_269","TM_HSP90a_6_271","TM_SERPIN_9_380",
+                                           "TM_SERPIN20_379","VDD_HERC6_77","VDD_IFI44A_81","VDD_IFIT5_2_83","VDD_MX_86","VDD_NFX_87")], permutations = 999, na.rm = TRUE))
+envfit_0
+
+#NOTE: No significant effect of single genes
+
 str(trout_metadata)
-envfit_1 <- (envfit(nmms, trout_metadata[c("common_name", "fork_length..mm.","skin_colour", "daysurv", "set_location", "shan_div")], permutations = 999, na.rm = TRUE))
+envfit_1 <- (envfit(nmms, trout_metadata[c("fork_length..mm.","skin_colour", "daysurv", "shan_div", "thermal_stress_comp1")], permutations = 999, na.rm = TRUE))
 envfit_1
 en_coord_cont = as.data.frame(scores(envfit_1, "vectors")) * ordiArrowMul(envfit_1)
 en_coord_cat = as.data.frame(scores(envfit_1, "factors")) * ordiArrowMul(envfit_1)
@@ -441,6 +496,20 @@ gg = ggplot(data = data.scores, aes(x = NMDS1, y = NMDS2)) +
 
 
 gg
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 str(positive_trout)
 str(fish_metadata)
