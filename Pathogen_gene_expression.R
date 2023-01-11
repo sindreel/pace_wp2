@@ -78,6 +78,12 @@ fitchip_data$Temperature <- fitchip_data$temperature
 
 library(tidyr)
 names(fitchip_data)
+
+fitchip_rob <- fitchip_data[c(74, 1:64)]
+
+
+
+
 fitchip_long <- gather(fitchip_data, gene_marker, measurement, CL_H2EB1_672,CL_ICLP2_674,CL_PSMB7_686,IF_ES1_668,IF_txn_683,      
                        IM_ARRDC2_663,IM_EPD_667,IM_GLUL_670,IM_NUPR1_677,IM_ODC1_678,IM_TAGLN3_681,   
                        IM_napepld_676,IM_tgfb_682,IS_B2M_182,IS_C5aR_577,IS_CD83_579,IS_IL1B_295,     
@@ -85,6 +91,7 @@ fitchip_long <- gather(fitchip_data, gene_marker, measurement, CL_H2EB1_672,CL_I
                        OS_CCL4_195,OS_CFTR_I_206,OS_HBA_254,OS_NDUFB2_322,OS_UBA1_605,TM_FKBP10_4_583, 
                        TM_Hsp90a_15_269,TM_HSP90a_6_271,TM_SERPIN20_379,TM_SERPIN_9_380,TM_HSP70_267,VDD_HERC6_77,   
                        VDD_IFI44A_81,VDD_IFIT5_2_83,VDD_MX_86,VDD_NFX_87)
+
 
 str(fitchip_long)
 
@@ -95,6 +102,12 @@ fitchip_long$measurement <- as.numeric(fitchip_long$measurement)
 summary(as.factor(fitchip_long$fitchip_panel))
 fitchip_long$fitchip_panel[fitchip_long$fitchip_panel=='MR'] <- 'MRS'
 fitchip_long$fitchip_panel[fitchip_long$fitchip_panel=='VD'] <- 'VDD'
+
+names(fitchip_long)
+fitchip_long_rob <- fitchip_long[c(35, 1:3, 25, 29, 44,45,46)]
+
+export_rob <- list(fitchip=fitchip_rob,fitchip_long=fitchip_long_rob)
+#saveRDS(export_rob, "./data/modified_data/export_rob_gene_expression_110123.rds")
 
 
 thermal_stress <- fitchip_long#[fitchip_long$fitchip_panel=='TM' & fitchip_long$Temperature!='', ]
