@@ -125,7 +125,7 @@ write.csv(pathogens_NOV21, "./data/modified_data/pathogen_prevalence_NOV21.csv",
 ###########################################################################
 #Plotting proportional detected prevalence
 ###########################################################################
-tmp <- dplyr::select(pathogens_NOV21, common_name, set_location, hatchery_wild, pathogen, measurement)
+tmp <- dplyr::select(pathogens_NOV21, common_name, set_location, pathogen, measurement)
 
 tmp <- pathogens_NOV21 %>%
   group_by(set_location, common_name, pathogen) %>%
@@ -430,6 +430,7 @@ trout_metadata <- merge(trout_metadata, gene_expression, by.x = "dna_id", by.y =
 #Export trout_metadata
 write.csv(trout_metadata, "./data/modified_data/trout_metadata.csv", row.names = FALSE)
 
+str(trout_metadata)
 names(gene_expression)
 
 envfit_0 <- (envfit(nmms, trout_metadata[c("CL_H2EB1_672","CL_ICLP2_674","CL_PSMB7_686",
