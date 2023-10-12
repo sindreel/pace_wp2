@@ -26,7 +26,7 @@ false_detections <- readRDS("./data/modified_data/tracking_data_false_detections
 str(false_detections)
 false_detections$fishID <- as.character(false_detections$fishID)
 summary(as.factor(false_detections$fishID))
-false_detections$fishID <- as.integer(false_detections$fishID)
+#false_detections$fishID <- as.integer(false_detections$fishID)
 false_detections <- false_detections[which (!is.na(false_detections$fishID)), ]
 false_detections$fishID <- as.factor(false_detections$fishID)
 
@@ -251,13 +251,13 @@ for (i in seq_along(ID_list)) {
 pz[[i]] <- ggarrange(pa[[i]],pc[[i]], ncol = 2, nrow = 1, heights = c(2, 1))
   
   #  ps[[i]]
-  ggsave(pz[[i]], file=paste0("./data/modified_data/summary_fishid_",  as.character(ID_list[i]),".tiff"), units="cm", width=80, height=30, dpi=600, compression = 'lzw', limitsize = FALSE)
+  ggsave(pz[[i]], file=paste0("./data/modified_data/individual_plots/summary_fishid_",  as.character(ID_list[i]),".tiff"), units="cm", width=80, height=30, dpi=600, compression = 'lzw', limitsize = FALSE)
   
 }
 
 # Exporting in a single PDF
 
-pdf(pz, file='./data/modified_data/individual_adult_tracks.pdf', width=8.66, height=6.3)
-ps
-dev.off()
+#pdf(pz, file='./data/modified_data/individual_adult_tracks.pdf', width=8.66, height=6.3)
+#ps
+#dev.off()
 

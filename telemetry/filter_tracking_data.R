@@ -395,3 +395,8 @@ saveRDS(tracking_data, "./data/modified_data/filtered_tracking_data.rds")
 saveRDS(tracking_data_false_detections, "./data/modified_data/tracking_data_false_detections.rds")
 saveRDS(stationID, "./data/modified_data/stationID.rds")
 saveRDS(fishdata, "./data/modified_data/fishdata.rds")
+saveRDS(tracking_data, "./data/modified_data/beiarn_dets_filtered.rds")
+saveRDS(tracking_data_false_detections, "./data/modified_data/beiarn_false_dets.rds")
+saveRDS(stationID, "./data/modified_data/beiarn_receiverdata.rds")
+saveRDS(fishdata, "./data/modified_data/beiarn_fishdata.rds")
+

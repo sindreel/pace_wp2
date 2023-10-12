@@ -3,10 +3,6 @@
 rm(list = ls(all = TRUE))
 ###########################################################
 
-#########################################################################
-#download Greenland telemetry-data
-#########################################################################
-
 #Last updated telemetry data file - 17.10.2022
 
 #-----------------------------------------------------------------------
@@ -14,7 +10,7 @@ rm(list = ls(all = TRUE))
 # your code transportable among different computers.. 
 #-----------------------------------------------------------------------
 
-# This script downloads and merges the data needed for further analyses for the Greenland tracking project.
+# This script downloads and merges the data needed for further analyses for the Helstranda.
 
 
 # first create new folder (./data/raw_data) to store the files 
