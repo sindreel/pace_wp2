@@ -154,7 +154,7 @@ str(tracking_data)
 ###################     LOOPS FOR INDIVIDUAL PLOTS (creating a single pdf)    ####################
 str(tracking_data)
 summary(as.factor(tracking_data$tag_type))
-ID_list <- as.character(sort(unique(tracking_data$fishID[tracking_data$tag_type=="V13A-1x"]))) 
+ID_list <- as.character(sort(unique(tracking_data$fishID))) 
 ID_list
 
 #lims <- as.POSIXct(strptime(c("2020-08-01","2022-01-01"), format = "%Y-%m-%d"))    #endret tidspunkt
@@ -209,7 +209,7 @@ all_fish <- sa_map2_plt <- OpenStreetMap::autoplot.OpenStreetMap(sa_map2)+
   geom_label_repel(data = det_all, aes(x = DEPLOY_LONG, y = DEPLOY_LAT, label = n_all), colour = "black", size =  2.5, nudge_x = 0.005, nudge_y = 0.005, max.overlaps = Inf)
 
 
-dir.create("data/modified_data/individual_plots", showWarnings = FALSE, recursive = TRUE)
+dir.create("data/modified_data/individual_plots/stjordal/", showWarnings = FALSE, recursive = TRUE)
 rm(i)
 
 for (i in seq_along(ID_list)) {
@@ -245,13 +245,187 @@ for (i in seq_along(ID_list)) {
   pz[[i]] <- ggarrange(pa[[i]],pc[[i]], ncol = 1, nrow = 2, heights = c(1, 1))
   
   #  ps[[i]]
-  ggsave(pz[[i]], file=paste0("./data/modified_data/stjordal_accelleration_fishid_",  as.character(ID_list[i]),".tiff"), units="cm", width=120, height=30, dpi=200, compression = 'lzw', limitsize = FALSE)
+  ggsave(pz[[i]], file=paste0("./data/modified_data/individual_plots/stjordal/stjordal_accelleration_fishid_",  as.character(ID_list[i]),".tiff"), units="cm", width=120, height=30, dpi=200, compression = 'lzw', limitsize = FALSE)
   
 }
 
 # Exporting in a single PDF
 
-pdf(pz, file='./data/modified_data/individual_adult_tracks.pdf', width=8.66, height=6.3)
-ps
-dev.off()
+fate <- tibble(vial=c( 
+  "165",
+  "173",
+  "310",
+  "314",
+  "316",
+  "330",
+  "332",
+  "H2021-11",
+  "H2021-3",
+  "H2021-6",
+  "H2021-75",
+  "H2021-78",
+  "H2021-8",
+  "H2021-9",
+  "H2021 - 225",
+  "H2021 - 243",
+  "H2021 - 252",
+  "H2021 - 299",
+  "H2021 - 366",
+  "H2021 - 376",
+  "H2021 - 437")) %>% 
+  bind_cols(fatedate=c(
+    "22-3-2021",
+    "19-1-2021",
+    "22-10-2021",
+    "15-9-2021",
+    "5-8-2021",
+    "9-9-2021",
+    "7-8-2021",
+    "24-4-2021",
+    "23-4-2021",
+    "1-1-2021",
+    "24-4-2021",
+    "1-7-2021",
+    "13-10-2021",
+    "1-10-2021",
+    "2-7-2021",
+    "1-7-2021",
+    "1-7-2021",
+    "5-7-2021",
+    "1-7-2021",
+    "24-5-2021",
+    "1-7-2021"
+  ))
+
+str(tracking_data)
+
+dir.create("data/modified_data/individual_plots/stjordal/detailed_fates/", showWarnings = FALSE, recursive = TRUE)
+rm(i)
+
+ID_list <- fate$vial
+ID_list <- 313
+
+for (i in seq_along(ID_list)) {
+  #ps[[i]] <- ggplot(subset(daily_avg, daily_avg$transmitterID == ID_list[i]), aes(x = datetime2)) + labs(title = paste(ID_list[i])) + theme_classic()
+  pa[[i]] <- sa_map2_plt <- OpenStreetMap::autoplot.OpenStreetMap(sa_map2)+
+    geom_point(data = deployment_data, aes(x = DEPLOY_LONG, y = DEPLOY_LAT), colour = "green", size =  2.5) + xlab("Longitude") + ylab("Latitude")+ ggtitle(paste0("Number of detections fish ", as.character(ID_list[i]))) + theme_classic(base_size = 18)+
+    geom_label_repel(data = det_count[det_count$fishID==ID_list[i],], aes(x = DEPLOY_LONG, y = DEPLOY_LAT, label = n_fish), colour = "black", size =  2.5, nudge_x = 0.005, nudge_y = 0.005, max.overlaps = Inf)
+  
+  #  img <- readPNG(paste0("./data/raw_data/fish_pictures/", as.character(ID_list[i]),".png"))
+  
+  #  pa[[i]] <- ggdraw() +
+  #    draw_plot(ps[[i]])+
+  #    draw_image(img, x = -0.12, y = 0.23, scale = 0.47)
+  
+  #  ggsave(pa[[i]], file=paste0("./data/modified_data/ndetections_fish_", as.character(ID_list[i]),".tiff"), units="cm", width=40, height=30, dpi=200, compression = 'lzw', limitsize = FALSE)
+  
+
+  pz[[i]] <- ggplot(tracking_data[tracking_data$fishID==ID_list[i],], aes(x=datetime, y=swimming_accelleration, col=filtered_as_false)) + theme_classic() + geom_point()+  xlab("date") + ylab("acceleration") + theme_classic(base_size = 16)+  scale_x_datetime(breaks = seq(from = min(tracking_data$datetime[tracking_data$fishID==ID_list[i]]), to = max(tracking_data$datetime[tracking_data$fishID==ID_list[i]]), by = "1 day"), labels = date_format("%d-%m-%y")) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  
+  #  ps[[i]]
+  ggsave(pz[[i]], file=paste0("./data/modified_data/individual_plots/stjordal/detailed_fates/stjordal_accelleration_fishid_",  as.character(ID_list[i]),".tiff"), units="cm", width=300, height=30, dpi=150, compression = 'lzw', limitsize = FALSE)
+  
+}
+
+
+
+fate <- tibble(vial=c( 
+  "165",
+  "173",
+  "310",
+  "314",
+  "316",
+  "330",
+  "332",
+  "H2021-11",
+  "H2021-3",
+  "H2021-6",
+  "H2021-75",
+  "H2021-78",
+  "H2021-8",
+  "H2021-9",
+  "H2021 - 225",
+  "H2021 - 243",
+  "H2021 - 252",
+  "H2021 - 299",
+  "H2021 - 366",
+  "H2021 - 376",
+  "H2021 - 437",
+  "313")) %>% 
+  bind_cols(fatedate=c(
+    "22-3-2021",
+    "19-1-2021",
+    "22-10-2021",
+    "15-9-2021",
+    "5-8-2021",
+    "9-9-2021",
+    "7-8-2021",
+    "24-4-2021",
+    "23-4-2021",
+    "1-1-2021",
+    "24-4-2021",
+    "1-7-2021",
+    "13-10-2021",
+    "1-10-2021",
+    "2-7-2021",
+    "1-7-2021",
+    "1-7-2021",
+    "5-7-2021",
+    "1-7-2021",
+    "24-5-2021",
+    "1-7-2021",
+    ""))%>% 
+      bind_cols(sindre_fatedate=c(
+        "21-3-2021",
+        "18-1-2021",
+        "21-10-2021",
+        "14-9-2021",
+        "4-8-2021",
+        "8-9-2021",
+        "7-8-2021",
+        "23-4-2021",
+        "20-4-2021",
+        "26-3-2021",
+        "24-4-2021",
+        "6-7-2021",
+        "17-10-2021",
+        "25-10-2021",
+        "2-7-2021",
+        "9-7-2021",
+        "30-6-2021",
+        "4-7-2021",
+        "20-6-2021",
+        "23-5-2021",
+        "28-6-2021",
+        "5-8-2021"))%>% 
+      bind_cols(sindre_comment=c(
+        "",
+        "not dead but faulty accel sensor",
+        "",
+        "",
+        "",
+        "",
+        "",
+        " not dead but faulty accel sensor",
+        "",
+        " not dead but faulty accel sensor",
+        "",
+        "somewhat uncertain",
+        "",
+        "somewhat uncertain",
+        "",
+        "uncertain fate date",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ))
+
+
+
+#pdf(pz, file='./data/modified_data/individual_adult_tracks.pdf', width=8.66, height=6.3)
+#ps
+#dev.off()
 

@@ -210,10 +210,10 @@ det_all <- det_all[!is.na(det_all$n_all),]
 
 summary(tracking_data$datetime)
 
-all_fish <- sa_map2_plt <- OpenStreetMap::autoplot.OpenStreetMap(sa_map2)+
-  geom_point(data = deployment_data, aes(x = DEPLOY_LONG, y = DEPLOY_LAT), colour = "green", size =  2.5) + xlab("Longitude") + ylab("Latitude")+ ggtitle(paste0("Number of detections fish ", as.character(ID_list[i]))) + theme_classic(base_size = 18)+
-  geom_label_repel(data = det_count[det_count$fishID==ID_list[i],], aes(x = DEPLOY_LONG, y = DEPLOY_LAT, label = n_fish), colour = "black", size =  2.5, nudge_x = 0.005, nudge_y = 0.005, max.overlaps = Inf)
-
+# all_fish <- sa_map2_plt <- OpenStreetMap::autoplot.OpenStreetMap(sa_map2)+
+#   geom_point(data = deployment_data, aes(x = DEPLOY_LONG, y = DEPLOY_LAT), colour = "green", size =  2.5) + xlab("Longitude") + ylab("Latitude")+ ggtitle(paste0("Number of detections fish ", as.character(ID_list[i]))) + theme_classic(base_size = 18)+
+#   geom_label_repel(data = det_count[det_count$fishID==ID_list[i],], aes(x = DEPLOY_LONG, y = DEPLOY_LAT, label = n_fish), colour = "black", size =  2.5, nudge_x = 0.005, nudge_y = 0.005, max.overlaps = Inf)
+# 
 
 
 
