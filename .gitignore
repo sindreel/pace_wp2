@@ -32,3 +32,5 @@ data
 full_assay_list_long_copy_101023.RDS
 full_assay_list_long_ct_101023.RDS
 receiver_summary.csv
+.RData
+.RDataTmp2
