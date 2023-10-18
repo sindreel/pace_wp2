@@ -13,6 +13,7 @@ tracking_bolstad <-readRDS("./data/modified_data/fever_bolstad.RDS")
 tracking_beiarn <- readRDS("./data/modified_data/fever_beiarfjorden.RDS")
 tracking_stjordal <- readRDS("./data/modified_data/fever_stjordal.RDS")
 str(tracking_bolstad)
+summary(as.factor(tracking_bolstad$Transmitter)) #comment - all transmitters are only temp sensors here
 tracking_bolstad$temperature <- tracking_bolstad$Data/10
 tracking_bolstad$receiverID <- tracking_bolstad$Receiver
 str(tracking_bolstad)
@@ -20,7 +21,8 @@ tracking_bolstad <- tracking_bolstad[c("transmitterID", "receiverID", "datetime"
 tracking_bolstad$fishID <- tracking_bolstad$transmitterID
 tracking_bolstad$datetime <- as.POSIXct(tracking_bolstad$datetime)
 tracking_bolstad$day <- as.numeric(tracking_bolstad$datetime-tracking_bolstad$tagging_date)
-summary(tracking_bolstad$day)
+summary(tracking_bolstad$day) #Note - we have only included 15 days here - a bit too little?
+
 
 str(tracking_beiarn)
 fishdata_beiarn <- readRDS("./data/modified_data/fishdata.RDS")
@@ -89,7 +91,7 @@ p <- ggplot(tracking_data[tracking_data$fjord=="Beiarfjorden",], aes(x=datetime,
 #+ geom_hline(yintercept=c(mean_comp1+sd_comp1, mean_comp1-sd_comp1), linetype="dotted")
 p
 
-p <- ggplot(tracking_data[tracking_data$fjord=="Beiarfjorden",], aes(x=datetime, y=temperature, col= fishID)) + geom_point()+ geom_smooth(method = "lm")+ theme_classic(base_size = 18)+ 
+p <- ggplot(tracking_data[tracking_data$fjord=="Beiarfjorden",], aes(x=datetime, y=temperature, col= fishID)) + geom_line()+ theme_classic(base_size = 18)+ 
   theme(legend.position = "right") + ggtitle("River Beiarelva, n=43") + 
   xlab("Day of tracking") + ylab("Celcius")+ ylim(6,16)
 #+ geom_hline(yintercept=c(mean_comp1+sd_comp1, mean_comp1-sd_comp1), linetype="dotted")

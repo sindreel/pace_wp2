@@ -193,6 +193,12 @@ p3 <-
 ggsave("./data/modified_data/pathogen_prevalence_level_trout_FEB-22.tiff", p3, units="cm", width=30, height=30, dpi=300, compression = 'lzw')
 
 p3
+
+#Calculate and plot relative infection burden:
+str(pathogens_NOV21)
+
+
+
 ##################################################################
 #Salmon
 p4 <- ggplot(salmon, aes(y = agent_name, x = prop_positive*100, fill=set_location))+ theme_classic(base_size = 18) + geom_col(position = position_dodge(width = 0.9)) + theme(axis.text.x=element_text(angle=90, hjust=1))+ ggtitle("Pathogen prevalence") +xlab("Proportion prevalence (%)")+ ylab(element_blank())

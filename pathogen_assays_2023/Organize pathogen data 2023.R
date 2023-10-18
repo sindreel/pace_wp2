@@ -249,3 +249,118 @@ ggsave("./data/modified_data/histogram_ct_values.tiff", p1, units="cm", width=20
 
 saveRDS(full_list_long_ct,"./data/modified_data/full_assay_list_long_ct_101023.RDS")
 
+
+str(full_list_long_ct)
+str(full_list_long_copy)
+head(full_list_long_ct)
+head(full_list_long_copy)
+hist(full_list_long_ct$value)
+hist(full_list_long_copy$value)
+summary(full_list_long_copy$value)
+hist(full_list_long_copy$value[full_list_long_copy$value<1000000 & full_list_long_copy$value>0])
+
+#According to angela we should use the copy numbers for the pathogens.
+#Lets bring in the fishdata to try to replicate the RIB from Robs paper.
+
+library(gsheet)
+meta<-gsheet2tbl('https://docs.google.com/spreadsheets/d/1ht4dk480HDm5a6Eop1eGKOnQNeGXJnKb7FnFBc9dMGA/edit#gid=0') 
+str(meta)
+meta_trout <- meta[!is.na(meta$vial), ]
+summary(as.factor(meta_trout$Spp))
+meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta', ]
+meta_trout <- meta_trout[meta_trout$Year>2019, ]
+summary(as.factor(meta_trout$System))
+summary(as.factor(meta$ID))
+str(meta_trout)
+meta_trout <- as.data.frame(meta_trout)
+library(tidyverse)
+str(meta_trout)
+
+summary(as.factor(meta_trout$Transmitter))
+str(full_list_long_copy)
+tmp <- full_list_long_copy[!duplicated(full_list_long_copy$vial), ]
+
+#keep only vials analysed
+meta_trout <- merge(meta_trout, tmp[c("vial")], by = "vial")
+summary(as.factor(meta_trout$System))
+summary(as.factor(meta_trout$Transmitter))
+
+
+accel_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13A-1x-BL', ]
+summary(as.factor(accel_trout$System))
+
+#max pathogen values
+accel_pathogens <- merge(full_list_long_copy, accel_trout, by = "vial")
+hist(accel_pathogens$value[accel_pathogens$value>0 & accel_pathogens$value<1.5], breaks = 15)
+?hist
+#what was the cutoff again?
+accel_pathogens <- accel_pathogens[accel_pathogens$value>1, ]
+
+max_path <- accel_pathogens%>%
+  group_by(assay) %>%
+  summarize(max_path = max(value))
+accel_pathogens <- merge(accel_pathogens, max_path, by = "assay")
+accel_pathogens$rib <- accel_pathogens$value/accel_pathogens$max_path
+summary(accel_pathogens$rib)
+
+
+tot_rib <- accel_pathogens %>%
+  group_by(vial)%>%
+  summarize(tot_rib = sum(rib))
+accel_pathogens <- merge(accel_pathogens, tot_rib, by="vial")
+levels = unique(accel_pathogens$vial[order(accel_pathogens$tot_rib)])
+
+accel_pathogens$vial <- factor(accel_pathogens$vial,                                    # Change ordering manually
+                  levels = levels)
+
+str(accel_pathogens)
+ggplot(accel_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
+
+
+# Grouped
+ggplot(accel_pathogens, aes(fill=assay, x=rib, y=vial)) + 
+  geom_bar(stat="identity")+
+  facet_wrap(~System, scales = "free")
+
+
+summary(as.factor(meta_trout$Transmitter))
+###########################################################
+#Fish included in temperature studies
+###########################################################
+temp_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13-T-1x-BLU-1'|meta_trout$Transmitter=='V9T-2x', ]
+summary(as.factor(temp_trout$System))
+
+#max pathogen values
+temp_pathogens <- merge(full_list_long_copy, temp_trout, by = "vial")
+hist(temp_pathogens$value[temp_pathogens$value>0 & temp_pathogens$value<1.5], breaks = 15)
+?hist
+#what was the cutoff again?
+temp_pathogens <- temp_pathogens[temp_pathogens$value>1, ]
+
+max_path <- temp_pathogens%>%
+  group_by(assay) %>%
+  summarize(max_path = max(value))
+temp_pathogens <- merge(temp_pathogens, max_path, by = "assay")
+temp_pathogens$rib <- temp_pathogens$value/temp_pathogens$max_path
+summary(temp_pathogens$rib)
+
+
+tot_rib <- temp_pathogens %>%
+  group_by(vial)%>%
+  summarize(tot_rib = sum(rib))
+temp_pathogens <- merge(temp_pathogens, tot_rib, by="vial")
+levels = unique(temp_pathogens$vial[order(temp_pathogens$tot_rib)])
+
+temp_pathogens$vial <- factor(temp_pathogens$vial,                                    # Change ordering manually
+                               levels = levels)
+
+str(temp_pathogens)
+ggplot(temp_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
+
+
+# Grouped
+ggplot(temp_pathogens, aes(fill=assay, x=rib, y=vial)) + 
+  geom_bar(stat="identity")+
+  facet_wrap(~System, scales = "free")
+
+
