@@ -335,7 +335,7 @@ temp_pathogens <- merge(full_list_long_copy, temp_trout, by = "vial")
 hist(temp_pathogens$value[temp_pathogens$value>0 & temp_pathogens$value<1.5], breaks = 15)
 ?hist
 #what was the cutoff again?
-temp_pathogens <- temp_pathogens[temp_pathogens$value>1, ]
+temp_pathogens <- temp_pathogens[temp_pathogens$value>1, ] #make them zero
 
 max_path <- temp_pathogens%>%
   group_by(assay) %>%
@@ -361,13 +361,13 @@ ggplot(temp_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
 # Grouped
 p1 <-ggplot(temp_pathogens, aes(fill=assay, x=rib, y=vial)) + 
   geom_bar(stat="identity")+
-  facet_wrap(~System, scales = "free_y")+ force_panelsizes(rows = 1)
+  facet_wrap(~System, scales = "free_y", ncol=4)
 
-
+p1
 str(temp_pathogens)
 
 
-ggsave("./data/modified_data/PACE_temperature_RIB.tiff", p1, units="cm", width=20, height=25, dpi=600, compression = 'lzw')
+ggsave("./data/modified_data/Pace_temperature_RDS.tiff", p1, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
 
 
 #saveRDS(temp_pathogens, "./data/modified_data/fish_metadata_PACE_temp_paper.RDS")

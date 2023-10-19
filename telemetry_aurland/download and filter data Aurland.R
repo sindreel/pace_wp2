@@ -1,0 +1,79 @@
+###########################################################
+#Clear memory
+rm(list = ls(all = TRUE))
+###########################################################
+
+library(stringr)
+
+#########################################################################
+#download Stjordal telemetry-data
+#########################################################################
+
+#Last updated telemetry data file - 17.10.2022
+
+#-----------------------------------------------------------------------
+# Download data from external source. This is best practice for making 
+# your code transportable among different computers.. 
+#-----------------------------------------------------------------------
+
+# This script downloads and merges the data needed for further analyses for the Greenland tracking project.
+
+
+# first create new folder (./data/raw_data) to store the files 
+# locally (cache down the data) - remember to update gitignore folder (add 
+# the line */data/raw_data to the .gitignore file)
+dir.create("data/raw_data", showWarnings = FALSE, recursive = TRUE)
+dir.create("data/modified_data", showWarnings = FALSE, recursive = TRUE)
+
+#change timeout option to fix problem with large files
+options(timeout = max(999, getOption("timeout")))
+
+
+
+URL_tracking_data <- "https://ntnu.box.com/shared/static/9p5djdvhwn8lpw369itforit7juxg864.rds" #Uploaded new version 29.11.22
+download.file(url=URL_tracking_data,destfile="./data/raw_data/tracking_data_aurland.RDS")
+
+#setwd("C:/Users/role/OneDrive - NORCE/BTN/detections")
+
+getwd()
+detections <- readRDS("./data/raw_data/tracking_data_aurland.RDS")
+str(detections)
+
+
+library(dplyr)
+
+require(tidyverse); require(lubridate); require(rgdal)
+library(tidyverse)
+library(lubridate)
+library(rgdal)
+
+# pull receiver metadata
+
+library(gsheet)
+rec<-gsheet2tbl('https://docs.google.com/spreadsheets/d/18mUpHQkSBs5PKN2XqoOZEUXXjzUTJwyDx7qvU-0kgqs/edit#gid=1414140311') %>% 
+  as_tibble %>% 
+  dplyr::filter(!is.na(lon))
+str(rec)
+summary(as.factor(rec$Project))
+rec <- rec[rec$Project=='LAKES Aurland'|rec$Project=='LaKES Aurland',]
+
+saveRDS(rec, "./data/modified_data/stationID_aurland.RDS")
+
+meta<-gsheet2tbl('https://docs.google.com/spreadsheets/d/1ht4dk480HDm5a6Eop1eGKOnQNeGXJnKb7FnFBc9dMGA/edit#gid=0') 
+str(meta)
+meta_trout <- meta[!is.na(meta$vial), ]
+summary(as.factor(meta_trout$Spp))
+meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta'|meta_trout$Spp=='Salmo salar', ]
+meta_trout <- meta_trout[meta_trout$Year>2019, ]
+summary(as.factor(meta_trout$System))
+summary(as.factor(meta$ID))
+
+saveRDS(meta_trout, "./data/modified_data/fishdata_PACE_NORCE.RDS")
+
+summary(detections)
+summary(as.factor(detections$sensor))
+names(meta_trout)
+names(detections)
+summary(as.factor(detections$oid))
+summary(as.factor(meta_trout$ID))
+#detections <- merge(detections, meta_trout[c("ID"), by.x = "oid", by.y="ID"])
