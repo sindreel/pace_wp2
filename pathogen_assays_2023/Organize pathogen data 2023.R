@@ -359,8 +359,15 @@ ggplot(temp_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
 
 
 # Grouped
-ggplot(temp_pathogens, aes(fill=assay, x=rib, y=vial)) + 
+p1 <-ggplot(temp_pathogens, aes(fill=assay, x=rib, y=vial)) + 
   geom_bar(stat="identity")+
-  facet_wrap(~System, scales = "free")
+  facet_wrap(~System, scales = "free_y")+ force_panelsizes(rows = 1)
 
 
+str(temp_pathogens)
+
+
+ggsave("./data/modified_data/PACE_temperature_RIB.tiff", p1, units="cm", width=20, height=25, dpi=600, compression = 'lzw')
+
+
+#saveRDS(temp_pathogens, "./data/modified_data/fish_metadata_PACE_temp_paper.RDS")
