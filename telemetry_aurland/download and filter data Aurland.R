@@ -61,13 +61,16 @@ saveRDS(rec, "./data/modified_data/stationID_aurland.RDS")
 
 meta<-gsheet2tbl('https://docs.google.com/spreadsheets/d/1ht4dk480HDm5a6Eop1eGKOnQNeGXJnKb7FnFBc9dMGA/edit#gid=0') 
 str(meta)
+meta <- meta[c(2:55)]
 meta_trout <- meta[!is.na(meta$vial), ]
 summary(as.factor(meta_trout$Spp))
-meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta'|meta_trout$Spp=='Salmo salar', ]
+meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta']
 meta_trout <- meta_trout[meta_trout$Year>2019, ]
 summary(as.factor(meta_trout$System))
+str(meta_trout)
+meta_trout <- as.data.frame(meta_trout)
+meta_trout <- meta_trout[meta_trout$System=='Aurland'|meta_trout$System=='Beiarelva'|meta_trout$System=='Stjordal'|meta_trout$System=='Vosso', ]
 summary(as.factor(meta$ID))
-
 saveRDS(meta_trout, "./data/modified_data/fishdata_PACE_NORCE.RDS")
 
 summary(detections)
@@ -76,4 +79,12 @@ names(meta_trout)
 names(detections)
 summary(as.factor(detections$oid))
 summary(as.factor(meta_trout$ID))
-#detections <- merge(detections, meta_trout[c("ID"), by.x = "oid", by.y="ID"])
+str(detections)
+str(meta_trout)
+detections <- detections[detections$sensor=='temp', ]
+detections <- detections[!is.na(detections$sensor), ]
+tmp <- meta_trout[c("ID", "vial", "System")]
+str(tmp)
+summary(as.factor(tmp$System))
+detections <- merge(detections, tmp, by.x = "oid", by.y="ID"])
+str(detections)
