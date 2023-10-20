@@ -45,7 +45,7 @@ library(dplyr)
 require(tidyverse); require(lubridate); require(rgdal)
 library(tidyverse)
 library(lubridate)
-library(rgdal)
+#library(rgdal)
 
 # pull receiver metadata
 
@@ -64,7 +64,8 @@ str(meta)
 meta <- meta[c(2:55)]
 meta_trout <- meta[!is.na(meta$vial), ]
 summary(as.factor(meta_trout$Spp))
-meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta']
+str(meta_trout)
+meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta', ]
 meta_trout <- meta_trout[meta_trout$Year>2019, ]
 summary(as.factor(meta_trout$System))
 str(meta_trout)
@@ -86,5 +87,12 @@ detections <- detections[!is.na(detections$sensor), ]
 tmp <- meta_trout[c("ID", "vial", "System")]
 str(tmp)
 summary(as.factor(tmp$System))
-detections <- merge(detections, tmp, by.x = "oid", by.y="ID"])
+
+detections <- merge(detections, tmp, by.x = "oid", by.y="ID")
 str(detections)
+summary(as.factor(detections$System))
+detections <- detections[detections$System=='Aurland', ]
+detections <- detections[!duplicated(detections), ]
+str(detections)
+
+saveRDS(detections, "./data/modified_data/detections_aurland.RDS")

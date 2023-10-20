@@ -318,9 +318,12 @@ ggplot(accel_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
 
 
 # Grouped
-ggplot(accel_pathogens, aes(fill=assay, x=rib, y=vial)) + 
+p0 <- ggplot(accel_pathogens, aes(fill=assay, x=rib, y=vial)) + 
   geom_bar(stat="identity")+
-  facet_wrap(~System, scales = "free")
+  facet_wrap(~System, scales = "free", ncol=3)
+
+
+ggsave("./data/modified_data/Pace_accleleration.tiff", p0, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
 
 
 summary(as.factor(meta_trout$Transmitter))
@@ -361,13 +364,13 @@ ggplot(temp_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
 # Grouped
 p1 <-ggplot(temp_pathogens, aes(fill=assay, x=rib, y=vial)) + 
   geom_bar(stat="identity")+
-  facet_wrap(~System, scales = "free_y", ncol=4)
+  facet_wrap(~System, scales = "free", ncol=4)
 
 p1
 str(temp_pathogens)
 
 
-ggsave("./data/modified_data/Pace_temperature_RDS.tiff", p1, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
+ggsave("./data/modified_data/Pace_temperature.tiff", p1, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
 
 
 #saveRDS(temp_pathogens, "./data/modified_data/fish_metadata_PACE_temp_paper.RDS")
