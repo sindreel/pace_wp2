@@ -261,6 +261,12 @@ hist(full_list_long_copy$value[full_list_long_copy$value<1000000 & full_list_lon
 
 #According to angela we should use the copy numbers for the pathogens.
 #Lets bring in the fishdata to try to replicate the RIB from Robs paper.
+full_list_long_copy <- full_list_long_copy[full_list_long_copy$value>=1, ] #Remove values 1 or less
+full_list_long_copy$value <- log(full_list_long_copy$value) # Make log value
+
+
+
+
 
 library(gsheet)
 meta<-gsheet2tbl('https://docs.google.com/spreadsheets/d/1ht4dk480HDm5a6Eop1eGKOnQNeGXJnKb7FnFBc9dMGA/edit#gid=0') 
@@ -294,7 +300,6 @@ accel_pathogens <- merge(full_list_long_copy, accel_trout, by = "vial")
 hist(accel_pathogens$value[accel_pathogens$value>0 & accel_pathogens$value<1.5], breaks = 15)
 ?hist
 #what was the cutoff again?
-accel_pathogens <- accel_pathogens[accel_pathogens$value>1, ]
 
 max_path <- accel_pathogens%>%
   group_by(assay) %>%
@@ -322,8 +327,9 @@ p0 <- ggplot(accel_pathogens, aes(fill=assay, x=rib, y=vial)) +
   geom_bar(stat="identity")+
   facet_wrap(~System, scales = "free", ncol=3)
 
+p0
 
-ggsave("./data/modified_data/Pace_accleleration.tiff", p0, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
+ggsave("./data/modified_data/Pace_accleleration_log_transformed.tiff", p0, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
 
 
 summary(as.factor(meta_trout$Transmitter))
