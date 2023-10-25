@@ -52,6 +52,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(gridExtra)
+library(stringr)
 
 #Read pathogen list
 pathogen_list <- read.csv("./data/raw_data/pathogen_list_2023.csv", sep = ";")
@@ -264,9 +265,26 @@ hist(full_list_long_copy$value[full_list_long_copy$value<1000000 & full_list_lon
 full_list_long_copy <- full_list_long_copy[full_list_long_copy$value>=1, ] #Remove values 1 or less
 full_list_long_copy$value <- log(full_list_long_copy$value) # Make log value
 
-
-
-
+summary(as.factor(full_list_long_copy$assay))
+full_list_long_copy <- full_list_long_copy[grepl("Gill", full_list_long_copy$assay), ]
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "PRV3_L1", "prv_3")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_1", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_18", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_20", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_21", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_27", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_29", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_37", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_38", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_39", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_41", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_47", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_50", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_51", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "psy8", "psy")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_Gill_copy", "")
+unique(full_list_long_copy$vial)
+summary(as.factor(full_list_long_copy$scientific_name))
 
 library(gsheet)
 meta<-gsheet2tbl('https://docs.google.com/spreadsheets/d/1ht4dk480HDm5a6Eop1eGKOnQNeGXJnKb7FnFBc9dMGA/edit#gid=0') 
@@ -292,7 +310,59 @@ summary(as.factor(meta_trout$System))
 summary(as.factor(meta_trout$Transmitter))
 
 
-accel_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13A-1x-BL', ]
+#################################################################################
+#All_trout
+#################################################################################
+
+all_trout <- meta_trout
+summary(as.factor(all_trout$System))
+
+#max pathogen values
+trout_pathogens <- merge(full_list_long_copy, all_trout, by = "vial")
+unique(trout_pathogens$vial)
+hist(trout_pathogens$value[trout_pathogens$value>0 & trout_pathogens$value<1.5], breaks = 15)
+?hist
+#what was the cutoff again?
+
+max_path <- trout_pathogens%>%
+  group_by(assay) %>%
+  summarize(max_path = max(value))
+trout_pathogens <- merge(trout_pathogens, max_path, by = "assay")
+trout_pathogens$rib <- trout_pathogens$value/trout_pathogens$max_path
+summary(trout_pathogens$rib)
+
+
+tot_rib <- trout_pathogens %>%
+  group_by(vial)%>%
+  summarize(tot_rib = sum(rib))
+trout_pathogens <- merge(trout_pathogens, tot_rib, by="vial")
+levels = unique(trout_pathogens$vial[order(trout_pathogens$tot_rib)])
+
+trout_pathogens$vial <- factor(trout_pathogens$vial,                                    # Change ordering manually
+                               levels = levels)
+
+str(trout_pathogens)
+ggplot(trout_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
+
+
+# Grouped
+p0 <- ggplot(trout_pathogens, aes(fill=assay, x=rib, y=vial)) + 
+  geom_bar(stat="identity")+
+  facet_wrap(~System, scales = "free", ncol=4)
+
+p0
+
+ggsave("./data/modified_data/Pace_all_trout_log_transformed.tiff", p0, units="cm", width=35, height=30, dpi=600, compression = 'lzw')
+
+
+
+summary(as.factor(meta_trout$Transmitter))
+#################################################################################
+#################################################################################
+
+
+
+accel_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13A-1x-BL',]
 summary(as.factor(accel_trout$System))
 
 #max pathogen values
@@ -336,7 +406,7 @@ summary(as.factor(meta_trout$Transmitter))
 ###########################################################
 #Fish included in temperature studies
 ###########################################################
-temp_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13-T-1x-BLU-1'|meta_trout$Transmitter=='V9T-2x', ]
+temp_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13-T-1x-BLU-1'|meta_trout$Transmitter=='V9T-2x' |meta_trout$Transmitter=='LP13-T',]
 summary(as.factor(temp_trout$System))
 
 #max pathogen values

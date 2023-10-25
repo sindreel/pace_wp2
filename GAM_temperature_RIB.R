@@ -116,12 +116,16 @@ str(tracking_stjordal)
 
 
 tracking_data <- rbind(tracking_aurland, tracking_bolstad, tracking_beiarn, tracking_stjordal)
+summary(as.factor(tracking_data$fjord))
 
 pathogens <- readRDS("./data/modified_data/fish_metadata_PACE_temp_paper.RDS")
+summary(as.factor(pathogens$System))
 pathogens <- pathogens[!duplicated(pathogens$vial), ]
+unique(pathogens$vial[pathogens$System=='Vosso'])
+unique(tracking_data$vial[tracking_data$fjord=='Bolstad'])
 
 tracking_data <- merge(tracking_data, pathogens, by = "vial")
-
+summary(as.factor(tracking_data$fjord))
 
 library(dplyr)
 str(tracking_data)
