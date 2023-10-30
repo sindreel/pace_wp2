@@ -57,8 +57,37 @@ library(stringr)
 #Read pathogen list
 pathogen_list <- read.csv("./data/raw_data/pathogen_list_2023.csv", sep = ";")
 #pathogen_list$agent_name[pathogen_list$agent_name=='Piscine orthoreovirus'] <- 'Piscine orthoreovirus -3'
+pathogen_list <- pathogen_list[pathogen_list$assay_id!="81", ]
 str(pathogen_list)
 summary(as.factor(pathogen_list$agent_name))
+str(pathogen_list)
+pathogen_list$ran_in_2020 <- pathogen_list$Ran.in.Norway.2020_SL..outmigrating.
+summary(droplevels(as.factor(pathogen_list$ran_in_2020)))
+pathogen_list$ran_in_2020 <- str_replace(pathogen_list$ran_in_2020, "ran isav7", "yes")
+pathogen_list$ran_in_2020 <- str_replace(pathogen_list$ran_in_2020, "46", "")
+
+pathogen_list$ran_in_2021 <- paste(pathogen_list$Ran.in.Norway_2021_Microbe_runs_AS..retun.migrating..4089.4090..48x2., pathogen_list$Ran.in.Norway_2021_Fitchip_runs_AS..retun.migrating..4186.4187..1x2..1x9., sep="_")
+summary(droplevels(as.factor(pathogen_list$ran_in_2021)))
+pathogen_list$ran_in_2021 <- str_replace(pathogen_list$ran_in_2021, "yes_", "yes")
+pathogen_list$ran_in_2021 <- str_replace(pathogen_list$ran_in_2021, "_yessingleton", "yes_singleton")
+pathogen_list$ran_in_2021 <- str_replace(pathogen_list$ran_in_2021, "yes-singleton-4187 only", "singleton_only_4187")
+pathogen_list$ran_in_2021 <- str_replace(pathogen_list$ran_in_2021, "yes-4090 onlyyes in duplicate-4186 only", "yes")
+pathogen_list$ran_in_2021 <- str_replace(pathogen_list$ran_in_2021, "_", "")
+pathogen_list$ran_in_2021 <- str_replace(pathogen_list$ran_in_2021, "NANA", "")
+pathogen_list$ran_in_2021 <- str_replace(pathogen_list$ran_in_2021, "yes-4090 onlyyes in duplicate-4186 only", "yes")
+
+pathogen_list$ran_in_2023 <- paste(pathogen_list$Run.in.Norway_2023_Microbe.chip..48x2., pathogen_list$Run.on.Norway_2003_.Fit.chip..4x2..3x1., sep="_")
+summary(droplevels(as.factor(pathogen_list$ran_in_2023)))
+pathogen_list$ran_in_2023 <- str_replace(pathogen_list$ran_in_2023, "NA_NA", "")
+pathogen_list$ran_in_2023 <- str_replace(pathogen_list$ran_in_2023, "_", "")
+pathogen_list$ran_in_2023 <- str_replace(pathogen_list$ran_in_2023, "_yes", "yes")
+pathogen_list$ran_in_2023 <- str_replace(pathogen_list$ran_in_2023, "_yes", "yes")
+pathogen_list$ran_in_2023 <- str_replace(pathogen_list$ran_in_2023, "_yes-singleton", "yes_singleton")
+pathogen_list$ran_in_2023 <- str_replace(pathogen_list$ran_in_2023, "yes-isav8", "yes")
+pathogen_list$ran_in_2023 <- str_replace(pathogen_list$ran_in_2023, "yes_", "yes")
+pathogen_list$ran_in_2023 <- str_replace(pathogen_list$ran_in_2023, "NA", "")
+pathogen_list$ran_in_2023[pathogen_list$Run.on.Norway_203_.Fit.chip..4x2..3x1.=='yes'] <- 'yes'
+pathogen_list$ran_in_2023[pathogen_list$Run.on.Norway_203_.Fit.chip..4x2..3x1.=='yes-singleton'] <- 'yes_singleton'
 
 
 #Read assays
@@ -226,7 +255,7 @@ p1 <- ggplot(full_list_long_copy, aes(value)) +
   geom_histogram() +#bins = 10 
   facet_wrap(~assay, scales = 'free')
 
-ggsave("./data/modified_data/histogram_copy_numbers.tiff", p1, units="cm", width=80, height=50, dpi=600, compression = 'lzw', limitsize = FALSE)
+#ggsave("./data/modified_data/histogram_copy_numbers.tiff", p1, units="cm", width=80, height=50, dpi=600, compression = 'lzw', limitsize = FALSE)
 
 saveRDS(full_list_long_copy,"./data/modified_data/full_assay_list_long_copy_101023.RDS")
 
@@ -262,9 +291,9 @@ hist(full_list_long_copy$value[full_list_long_copy$value<1000000 & full_list_lon
 
 #According to angela we should use the copy numbers for the pathogens.
 #Lets bring in the fishdata to try to replicate the RIB from Robs paper.
-full_list_long_copy <- full_list_long_copy[full_list_long_copy$value>=1, ] #Remove values 1 or less
-full_list_long_copy$value <- log(full_list_long_copy$value) # Make log value
-
+full_list_long_copy$value[full_list_long_copy$value<=1] <- 0 #Remove values 1 or less
+full_list_long_copy$log_value <- log(full_list_long_copy$value) # Make log value
+full_list_long_copy$log_value[full_list_long_copy$value<0] <- 0
 summary(as.factor(full_list_long_copy$assay))
 full_list_long_copy <- full_list_long_copy[grepl("Gill", full_list_long_copy$assay), ]
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "PRV3_L1", "prv_3")
@@ -283,6 +312,11 @@ full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_50", "")
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_51", "")
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "psy8", "psy")
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_Gill_copy", "")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "isav8", "isav")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "c_b_cys3", "c_b_cys")
+
+pathogen_list$December.2021.Onward.Names
+
 unique(full_list_long_copy$vial)
 summary(as.factor(full_list_long_copy$scientific_name))
 
@@ -291,7 +325,7 @@ meta<-gsheet2tbl('https://docs.google.com/spreadsheets/d/1ht4dk480HDm5a6Eop1eGKO
 str(meta)
 meta_trout <- meta[!is.na(meta$vial), ]
 summary(as.factor(meta_trout$Spp))
-meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta', ]
+meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta' | meta_trout$Spp=='Salmo salar' |meta_trout$Spp=='Salmo salar hatchery', ]
 meta_trout <- meta_trout[meta_trout$Year>2019, ]
 summary(as.factor(meta_trout$System))
 summary(as.factor(meta$ID))
@@ -309,28 +343,43 @@ meta_trout <- merge(meta_trout, tmp[c("vial")], by = "vial")
 summary(as.factor(meta_trout$System))
 summary(as.factor(meta_trout$Transmitter))
 
+str(meta_trout)
+pathogens_long_trout_salmon <- merge(full_list_long_copy, meta_trout, by = "vial")
+str(pathogens_long_trout_salmon)
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[c("vial", "System", "Year", "Transmitter", "Full_ID", "Spp", "assay", "value", "log_value")]
+head(pathogens_long_trout_salmon)
+pathogens_long_trout_salmon$log_value[pathogens_long_trout_salmon$log_value==-Inf] <- 0
+saveRDS(pathogens_long_trout_salmon, "./data/modified_data/all_pathogens_long.RDS")
+write.csv(pathogens_long_trout_salmon, "./data/modified_data/all_pathogens_long.csv", row.names = FALSE)
+head(pathogens_long_trout_salmon)
+summary(as.factor(pathogens_long_trout_salmon$assay[pathogens_long_trout_salmon$value>1]))
+summary(as.factor(pathogens_long_trout_salmon$System[pathogens_long_trout_salmon$value>1]))
 
 #################################################################################
 #All_trout
 #################################################################################
-
+meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta', ]
 all_trout <- meta_trout
 summary(as.factor(all_trout$System))
+trout_pathogens <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$Spp=='Salmo trutta', ]
+
+trout_pathogens <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$log_value>0, ]
+
 
 #max pathogen values
-trout_pathogens <- merge(full_list_long_copy, all_trout, by = "vial")
+#trout_pathogens <- merge(full_list_long_copy, all_trout, by = "vial")
 unique(trout_pathogens$vial)
 hist(trout_pathogens$value[trout_pathogens$value>0 & trout_pathogens$value<1.5], breaks = 15)
-?hist
 #what was the cutoff again?
 
 max_path <- trout_pathogens%>%
   group_by(assay) %>%
-  summarize(max_path = max(value))
+  summarize(max_path = max(log_value))
+summary(max_path)
 trout_pathogens <- merge(trout_pathogens, max_path, by = "assay")
-trout_pathogens$rib <- trout_pathogens$value/trout_pathogens$max_path
+trout_pathogens$rib <- trout_pathogens$log_value/trout_pathogens$max_path
 summary(trout_pathogens$rib)
-
+trout_pathogens$rib[is.nan(trout_pathogens$rib)] <- 0
 
 tot_rib <- trout_pathogens %>%
   group_by(vial)%>%
@@ -340,7 +389,7 @@ levels = unique(trout_pathogens$vial[order(trout_pathogens$tot_rib)])
 
 trout_pathogens$vial <- factor(trout_pathogens$vial,                                    # Change ordering manually
                                levels = levels)
-
+head(trout_pathogens)
 str(trout_pathogens)
 ggplot(trout_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
 
@@ -354,7 +403,7 @@ p0
 
 ggsave("./data/modified_data/Pace_all_trout_log_transformed.tiff", p0, units="cm", width=35, height=30, dpi=600, compression = 'lzw')
 
-
+str(trout_pathogens)
 
 summary(as.factor(meta_trout$Transmitter))
 #################################################################################
@@ -365,17 +414,16 @@ summary(as.factor(meta_trout$Transmitter))
 accel_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13A-1x-BL',]
 summary(as.factor(accel_trout$System))
 
-#max pathogen values
-accel_pathogens <- merge(full_list_long_copy, accel_trout, by = "vial")
-hist(accel_pathogens$value[accel_pathogens$value>0 & accel_pathogens$value<1.5], breaks = 15)
-?hist
-#what was the cutoff again?
+accel_pathogens <- merge(trout_pathogens, accel_trout[c("vial")], by = "vial")
+str(accel_pathogens)
+accel_pathogens <- subset(accel_pathogens, select=-c(max_path, rib, tot_rib))
+
 
 max_path <- accel_pathogens%>%
   group_by(assay) %>%
-  summarize(max_path = max(value))
+  summarize(max_path = max(log_value))
 accel_pathogens <- merge(accel_pathogens, max_path, by = "assay")
-accel_pathogens$rib <- accel_pathogens$value/accel_pathogens$max_path
+accel_pathogens$rib <- accel_pathogens$log_value/accel_pathogens$max_path
 summary(accel_pathogens$rib)
 
 
@@ -389,8 +437,16 @@ accel_pathogens$vial <- factor(accel_pathogens$vial,                            
                   levels = levels)
 
 str(accel_pathogens)
+
+#remove ca_cl (sea lice ran in signleton)
+accel_pathogens <- accel_pathogens[accel_pathogens$assay!='ca_cl', ]
+
 ggplot(accel_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
 
+str(pathogen_list)
+accel_pathogen_list <- pathogen_list[pathogen_list$ran_in_2023=='yes'|pathogen_list$ran_in_2023=='yes_singleton', ]
+accel_pathogen_list$December.2021.Onward.Names
+accel_pathogen_list$agent_name
 
 # Grouped
 p0 <- ggplot(accel_pathogens, aes(fill=assay, x=rib, y=vial)) + 
@@ -409,19 +465,37 @@ summary(as.factor(meta_trout$Transmitter))
 temp_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13-T-1x-BLU-1'|meta_trout$Transmitter=='V9T-2x' |meta_trout$Transmitter=='LP13-T',]
 summary(as.factor(temp_trout$System))
 
+temp_pathogen_list <- pathogen_list[pathogen_list$ran_in_2021=='yes'&pathogen_list$ran_in_2023=='yes', ]
+temp_pathogen_list$December.2021.Onward.Names
+temp_pathogen_list$agent_name
+temp_pathogen_list$December.2021.Onward.Names[temp_pathogen_list$December.2021.Onward.Names=='Ic_spp '] <- 'ic_spp'
+temp_pathogen_list$assay <- temp_pathogen_list$December.2021.Onward.Names
+temp_pathogen_list$assay
+
 #max pathogen values
-temp_pathogens <- merge(full_list_long_copy, temp_trout, by = "vial")
+temp_pathogens <- merge(trout_pathogens, temp_trout[c("vial")], by = "vial")
+temp_pathogens <- subset(temp_pathogens, select=-c(max_path, rib, tot_rib))
+summary(as.factor(temp_pathogens$assay))
+temp_pathogens$assay[temp_pathogens$assay=='Ichy_Costia'] <- 'ic_spp'
+temp_pathogens$assay[temp_pathogens$assay=='prv_3'] <- 'prv-3'
+summary(as.factor(temp_pathogens$assay))
+temp_pathogens <- merge(temp_pathogens, temp_pathogen_list[c("assay")], by= "assay")
+
+
+#temp_pathogens <- merge(full_list_long_copy, temp_trout, by = "vial")
 hist(temp_pathogens$value[temp_pathogens$value>0 & temp_pathogens$value<1.5], breaks = 15)
 ?hist
 #what was the cutoff again?
-temp_pathogens <- temp_pathogens[temp_pathogens$value>1, ] #make them zero
+#temp_pathogens <- temp_pathogens[temp_pathogens$value>1, ] #make them zero
 
 max_path <- temp_pathogens%>%
   group_by(assay) %>%
-  summarize(max_path = max(value))
+  summarize(max_path = max(log_value))
 temp_pathogens <- merge(temp_pathogens, max_path, by = "assay")
-temp_pathogens$rib <- temp_pathogens$value/temp_pathogens$max_path
+temp_pathogens$rib <- temp_pathogens$log_value/temp_pathogens$max_path
 summary(temp_pathogens$rib)
+temp_pathogens$assay <- as.character(temp_pathogens$assay)
+str(temp_pathogens)
 
 
 tot_rib <- temp_pathogens %>%
@@ -437,6 +511,7 @@ str(temp_pathogens)
 ggplot(temp_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
 
 
+
 # Grouped
 p1 <-ggplot(temp_pathogens, aes(fill=assay, x=rib, y=vial)) + 
   geom_bar(stat="identity")+
@@ -446,7 +521,13 @@ p1
 str(temp_pathogens)
 
 
+
+
 ggsave("./data/modified_data/Pace_temperature.tiff", p1, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
 
 
 #saveRDS(temp_pathogens, "./data/modified_data/fish_metadata_PACE_temp_paper.RDS")
+saveRDS(pathogen_list, "./data/modified_data/pathogen_list.RDS")
+write.csv(pathogen_list, "./data/modified_data/pathogen_list.csv", row.names = FALSE)
+pathogen_list$December.2021.Onward.Names
+

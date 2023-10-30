@@ -145,7 +145,7 @@ tracking_data <- tracking_data%>%
 str(tracking_data)
 library(scales)
 
-p <- ggplot(tracking_data, aes(x=day, y=temperature, group_by = transmitterID)) + geom_line()+ theme_classic(base_size = 18)+ 
+p <- ggplot(tracking_data, aes(x=day, y=temperature, col = transmitterID)) + geom_line()+ theme_classic(base_size = 18)+ 
   theme(legend.position = "right") + 
   xlab("Month") + ylab("Celcius") + facet_wrap(~fjord, scales = "free_y", ncol=4)
 
@@ -171,6 +171,8 @@ library(ggplot2)
 
 
 data1 <- tracking_data
+str(fishdata)
+data1 <- merge(tracking_data, fishdata[c("vial", "TL")], by="vial")
 
 data1 <- droplevels(data1)
 summary(data1$day)
@@ -194,18 +196,80 @@ data1$day <- as.numeric(data1$day)
 data1$vial <- as.factor(data1$vial)
 data1$lat <- as.numeric(data1$lat)
 data1$lon <- as.numeric(data1$lon)
+data1$hour <- as.POSIXct(data1$datetime, format="%H:%M:%S","%H")
+
+data1$hour = format(as.POSIXct(data1$datetime,format="%H:%M:%S"),"%H")
+
+head(data1)
+
+
+str(data1)
+str(data1)
+
+names(data1)
+data1$hour <- as.numeric(data1$hour)
+head(data1)
+gam1 <- bam(temperature~s(day, bs="tp", k=) + s(hour, bs="cc", k=5) + s(fjord, vial, bs="re", k=97) + s(lat, lon, bs="re", k=10) +  s(tot_rib, bs="tp", k=28), 
+            data= data1,
+            method = "fREML")
+
+
+summary(gam1)
+plot(gam1)
+
+str(data1)
+gam1 <- bam(temperature~s(day, bs="tp", k=28) + s(hour, bs="cc", k=24) + s(vial~fjord, bs="re", k=97) +  s(tot_rib, bs="tp", k=5) + s(TL, bs="tp", k=5), 
+            data= data1,
+            method = "fREML")
+
+
+summary(gam1)
+plot(gam1)
+
+#Note: Looks like there is something going on here, but is not unidirectional. Why is individuals with low infestation pressure so high? Maybe include body size as a explanatory variable.
 
 
 
 str(data1)
 
-gam1 <- bam(temperature~s(day, bs="tp", k=28) + s(vial, day, bs="re", k=28) + s(lat, lon, bs="re", k=10) + fjord + tot_rib, 
+
+
+
+gam1 <- bam(temperature~s(day, bs="tp", k=28) + s(hour, bs="cc", k=24) + s(vial, bs="re", k=97) +  s(tot_rib, bs="tp", k=5) +  s(TL, bs="tp", k=5) + fjord, 
+            data= data1,
+            method = "fREML")
+
+
+summary(gam1)
+plot(gam1)
+
+
+
+
+
+gam1 <- bam(temperature~s(day, bs="tp", k=100) + s(fjord, vial, bs="re", k=97) + s(lat, lon, bs="re", k=10) +  tot_rib, 
             data= data1,
             method = "fREML")
 
 
 summary(gam1)
 
+
+summary(gam1)
+
+
+
+plot(gam1)
+
+
+
+gam1 <- bam(temperature~s(day, bs="tp", k=28) + s(fjord, vial, bs="re") + s(lat, lon, bs="re", k=20) + tot_rib, 
+            data= data1,
+            method = "fREML")
+
+
+plot(gam1)
+summary(gam1)
 
 
 
