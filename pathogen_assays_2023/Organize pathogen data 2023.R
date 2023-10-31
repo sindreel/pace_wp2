@@ -275,7 +275,7 @@ p1 <- ggplot(full_list_long_ct, aes(value, col=stock_origin)) +
   geom_histogram() +#bins = 10 
   facet_wrap(~assay, scales = 'free')
 
-ggsave("./data/modified_data/histogram_ct_values.tiff", p1, units="cm", width=200, height=180, dpi=200, compression = 'lzw', limitsize = FALSE)
+#ggsave("./data/modified_data/histogram_ct_values.tiff", p1, units="cm", width=200, height=180, dpi=200, compression = 'lzw', limitsize = FALSE)
 
 saveRDS(full_list_long_ct,"./data/modified_data/full_assay_list_long_ct_101023.RDS")
 
@@ -289,14 +289,14 @@ hist(full_list_long_copy$value)
 summary(full_list_long_copy$value)
 hist(full_list_long_copy$value[full_list_long_copy$value<1000000 & full_list_long_copy$value>0])
 
-#According to angela we should use the copy numbers for the pathogens.
-#Lets bring in the fishdata to try to replicate the RIB from Robs paper.
-full_list_long_copy$value[full_list_long_copy$value<=1] <- 0 #Remove values 1 or less
-full_list_long_copy$log_value <- log(full_list_long_copy$value) # Make log value
-full_list_long_copy$log_value[full_list_long_copy$value<0] <- 0
+summary(pathogen_list)
+
 summary(as.factor(full_list_long_copy$assay))
 full_list_long_copy <- full_list_long_copy[grepl("Gill", full_list_long_copy$assay), ]
-full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "PRV3_L1", "prv_3")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "PRV3_L1", "prv-3")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "prv_3", "prv-3")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "prv", "prv-1")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "prv-1-3", "prv-3")
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_1", "")
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_18", "")
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_20", "")
@@ -314,6 +314,22 @@ full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "psy8", "psy
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "_Gill_copy", "")
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "isav8", "isav")
 full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "c_b_cys3", "c_b_cys")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "Lesa_COI", "le_sa")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "Ichy_Costia", "ic_spp")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "ihnv_22", "ihnv")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "nu_sal_33", "nu_sal")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "pa_min_36", "pa_min")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "pa_min_36", "pa_min")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "ascv_a", "ascv")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "ascv41", "ascv")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "myco_sp", "my_sp")
+full_list_long_copy$assay <- str_replace(full_list_long_copy$assay, "rlo_45", "rlo")
+
+
+
+
+pathogen_list$December.2021.Onward.Names <- str_replace(pathogen_list$December.2021.Onward.Names, "Ic_spp ", "ic_spp")
+
 
 pathogen_list$December.2021.Onward.Names
 
@@ -346,66 +362,187 @@ summary(as.factor(meta_trout$Transmitter))
 str(meta_trout)
 pathogens_long_trout_salmon <- merge(full_list_long_copy, meta_trout, by = "vial")
 str(pathogens_long_trout_salmon)
-pathogens_long_trout_salmon <- pathogens_long_trout_salmon[c("vial", "System", "Year", "Transmitter", "Full_ID", "Spp", "assay", "value", "log_value")]
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[c("vial", "System", "Year", "Transmitter", "Full_ID", "Spp", "assay", "value")]
 head(pathogens_long_trout_salmon)
+
+
+#merge LOD copy columns and evauate number of pathogens that get cut off:
+unique(pathogens_long_trout_salmon$assay[pathogens_long_trout_salmon$value>0])
+pathogen_list$December.2021.Onward.Names
+pathogen_list$assay <- pathogen_list$December.2021.Onward.Names
+str(pathogen_list)
+pathogen_list$LOD_Copy_95. <- as.numeric(pathogen_list$LOD_Copy_95.)
+pathogen_list$LOD_Copy_75. <- as.numeric(pathogen_list$LOD_Copy_75.)
+pathogens_long_trout_salmon <- merge(pathogens_long_trout_salmon, pathogen_list[c("assay", "LOD_Copy_95.", "LOD_Copy_75.")], by = "assay", all.x = TRUE)
+summary(pathogens_long_trout_salmon$value[is.na(pathogens_long_trout_salmon$LOD_Copy_75.)])
+#find which assays have not been merged properly
+str(pathogens_long_trout_salmon)
+str(pathogen_list)
+pathogens_long_trout_salmon$value[is.na(pathogens_long_trout_salmon$LOD_Copy_75.)] <- 0
+pathogens_long_trout_salmon$passed_75 <- '' 
+pathogens_long_trout_salmon$passed_75[pathogens_long_trout_salmon$value>=pathogens_long_trout_salmon$LOD_Copy_75.] <- 'yes'
+pathogens_long_trout_salmon$passed_95 <- '' 
+pathogens_long_trout_salmon$passed_95[pathogens_long_trout_salmon$value>=pathogens_long_trout_salmon$LOD_Copy_95.] <- 'yes'
+summary(as.factor(pathogens_long_trout_salmon$passed_75))
+summary(as.factor(pathogens_long_trout_salmon$passed_95))
+tmp <- pathogens_long_trout_salmon$value[pathogens_long_trout_salmon$value>0]
+
+#According to angela we should use the copy numbers for the pathogens.
+#Lets bring in the fishdata to try to replicate the RIB from Robs paper.
+pathogens_long_trout_salmon$log_value <- log(pathogens_long_trout_salmon$value) # Make log value
+pathogens_long_trout_salmon$log_value[pathogens_long_trout_salmon$log_value<0] <- 0
+pathogens_long_trout_salmon$log_value[is.na(pathogens_long_trout_salmon$log_value)] <- 0
 pathogens_long_trout_salmon$log_value[pathogens_long_trout_salmon$log_value==-Inf] <- 0
+summary(pathogens_long_trout_salmon$log_value)
+
+summary(as.factor(pathogens_long_trout_salmon$vial), maxsum = 999)
+
+
+#check vial 144
+t1 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='144',]
+t2 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='144_N4078',]#Comment: Identical values, dont need to do anything except removing N_samples 
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$vial!='144_N4078', ]
+
+#check vial 153
+t1 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='153',]
+t2 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='153_N4082',]#Comment: Identical values, dont need to do anything except removing N_samples 
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$vial!='153_N4082', ]
+
+#Check BF42
+t1 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='BF42',]
+t2 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='BF42_2',]#Comment: Duplicated vials with various pathogen results. Remove this vial ID from analyses
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$vial!='BF42', ]
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$vial!='BF42_2', ]
+
+#Check BF49
+t1 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='BF49',]
+t2 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='BF49_N4139',]#Comment: Identical values, dont need to do anything except removing N_samples 
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$vial!='BF49_N4139', ]
+
+#Check BF56
+t1 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='BF56',]
+t2 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='BF56_N4146',]#Comment: Identical values, dont need to do anything except removing N_samples 
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$vial!='BF56_N4146', ]
+
+#Check S33
+t1 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='S33',]
+t2 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='S33_N4031',]#Comment: Identical values, dont need to do anything except removing N_samples 
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$vial!='S33_N4031', ]
+
+#Check S36
+t1 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='S36',]
+t2 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='S36_N4034',]#Comment: Identical values, dont need to do anything except removing N_samples 
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$vial!='S36_N4034', ]
+
+#Check S40
+t1 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='S40',]
+t2 <- pathogens_long_trout_salmon[c("vial", "assay", "log_value")][pathogens_long_trout_salmon$vial=='S40_2',]#Comment: Identical values, dont need to do anything except removing N_samples 
+pathogens_long_trout_salmon <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$vial!='S36_N4034', ]
+
+
+
 saveRDS(pathogens_long_trout_salmon, "./data/modified_data/all_pathogens_long.RDS")
 write.csv(pathogens_long_trout_salmon, "./data/modified_data/all_pathogens_long.csv", row.names = FALSE)
 head(pathogens_long_trout_salmon)
-summary(as.factor(pathogens_long_trout_salmon$assay[pathogens_long_trout_salmon$value>1]))
-summary(as.factor(pathogens_long_trout_salmon$System[pathogens_long_trout_salmon$value>1]))
+
+
 
 #################################################################################
 #All_trout
 #################################################################################
 meta_trout <- meta_trout[meta_trout$Spp=='Salmo trutta', ]
 all_trout <- meta_trout
-summary(as.factor(all_trout$System))
+
+str(pathogens_long_trout_salmon)
+summary(as.factor(pathogens_long_trout_salmon$Spp))
 trout_pathogens <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$Spp=='Salmo trutta', ]
+head(trout_pathogens)
 
-trout_pathogens <- pathogens_long_trout_salmon[pathogens_long_trout_salmon$log_value>0, ]
-
-
-#max pathogen values
-#trout_pathogens <- merge(full_list_long_copy, all_trout, by = "vial")
-unique(trout_pathogens$vial)
-hist(trout_pathogens$value[trout_pathogens$value>0 & trout_pathogens$value<1.5], breaks = 15)
-#what was the cutoff again?
-
-max_path <- trout_pathogens%>%
+#Test with 75% LOD
+str(trout_pathogens)
+trout_75 <- trout_pathogens[trout_pathogens$passed_75=='yes', ]
+max_path <- trout_75%>%
   group_by(assay) %>%
   summarize(max_path = max(log_value))
 summary(max_path)
-trout_pathogens <- merge(trout_pathogens, max_path, by = "assay")
-trout_pathogens$rib <- trout_pathogens$log_value/trout_pathogens$max_path
-summary(trout_pathogens$rib)
-trout_pathogens$rib[is.nan(trout_pathogens$rib)] <- 0
+trout_75 <- merge(trout_75, max_path, by = "assay")
+trout_75$rib <- trout_75$log_value/trout_75$max_path
+summary(trout_75$rib)
+trout_75$rib[is.nan(trout_75$rib)] <- 0
 
-tot_rib <- trout_pathogens %>%
+tot_rib <- trout_75 %>%
   group_by(vial)%>%
   summarize(tot_rib = sum(rib))
-trout_pathogens <- merge(trout_pathogens, tot_rib, by="vial")
-levels = unique(trout_pathogens$vial[order(trout_pathogens$tot_rib)])
+trout_75 <- merge(trout_75, tot_rib, by="vial")
+levels = unique(trout_75$vial[order(trout_75$tot_rib)])
 
-trout_pathogens$vial <- factor(trout_pathogens$vial,                                    # Change ordering manually
+trout_75$vial <- factor(trout_75$vial,                                    # Change ordering manually
                                levels = levels)
-head(trout_pathogens)
-str(trout_pathogens)
-ggplot(trout_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
-
+head(trout_75)
+str(trout_75)
+ggplot(trout_75, aes(y=value, x=assay, col=vial)) + geom_point()
+summary(trout_75$rib)
 
 # Grouped
-p0 <- ggplot(trout_pathogens, aes(fill=assay, x=rib, y=vial)) + 
+p0 <- ggplot(trout_75, aes(fill=assay, x=rib, y=vial)) + 
   geom_bar(stat="identity")+
   facet_wrap(~System, scales = "free", ncol=4)
 
 p0
 
-ggsave("./data/modified_data/Pace_all_trout_log_transformed.tiff", p0, units="cm", width=35, height=30, dpi=600, compression = 'lzw')
+ggsave("./data/modified_data/Pace_all_trout_log_transformed_LOD75.tiff", p0, units="cm", width=35, height=30, dpi=600, compression = 'lzw')
 
 str(trout_pathogens)
 
+head(trout_75)
 summary(as.factor(meta_trout$Transmitter))
+trout_75 <- subset(trout_75, select=-c(tot_rib))
+saveRDS(trout_75, "./data/modified_data/PACE_WP2_WP3_trout_pathogens_LOD75.RDS")
+
+
+
+#Test with 95% LOD
+str(trout_pathogens)
+trout_95 <- trout_pathogens[trout_pathogens$passed_95=='yes', ]
+max_path <- trout_95%>%
+  group_by(assay) %>%
+  summarize(max_path = max(log_value))
+summary(max_path)
+trout_95 <- merge(trout_95, max_path, by = "assay")
+trout_95$rib <- trout_95$log_value/trout_95$max_path
+summary(trout_95$rib)
+trout_95$rib[is.nan(trout_95$rib)] <- 0
+
+tot_rib <- trout_95 %>%
+  group_by(vial)%>%
+  summarize(tot_rib = sum(rib))
+trout_95 <- merge(trout_95, tot_rib, by="vial")
+levels = unique(trout_95$vial[order(trout_95$tot_rib)])
+
+trout_95$vial <- factor(trout_95$vial,                                    # Change ordering manually
+                        levels = levels)
+head(trout_95)
+str(trout_95)
+ggplot(trout_95, aes(y=value, x=assay, col=vial)) + geom_point()
+summary(trout_95$rib)
+
+# Grouped
+p0 <- ggplot(trout_95, aes(fill=assay, x=rib, y=vial)) + 
+  geom_bar(stat="identity")+
+  facet_wrap(~System, scales = "free", ncol=4)
+
+p0
+
+ggsave("./data/modified_data/Pace_all_trout_log_transformed_LOD95.tiff", p0, units="cm", width=35, height=30, dpi=600, compression = 'lzw')
+
+str(trout_pathogens)
+
+head(trout_95)
+summary(as.factor(meta_trout$Transmitter))
+trout_95 <- subset(trout_95, select=-c(tot_rib))
+saveRDS(trout_95, "./data/modified_data/PACE_WP2_WP3_trout_pathogens_LOD95.RDS")
+
+
 #################################################################################
 #################################################################################
 
