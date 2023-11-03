@@ -545,95 +545,95 @@ saveRDS(trout_95, "./data/modified_data/PACE_WP2_WP3_trout_pathogens_LOD95.RDS")
 
 #################################################################################
 #################################################################################
-
-
-
-accel_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13A-1x-BL',]
-summary(as.factor(accel_trout$System))
-
-accel_pathogens <- merge(trout_pathogens, accel_trout[c("vial")], by = "vial")
-str(accel_pathogens)
-accel_pathogens <- subset(accel_pathogens, select=-c(max_path, rib, tot_rib))
-
-
-max_path <- accel_pathogens%>%
-  group_by(assay) %>%
-  summarize(max_path = max(log_value))
-accel_pathogens <- merge(accel_pathogens, max_path, by = "assay")
-accel_pathogens$rib <- accel_pathogens$log_value/accel_pathogens$max_path
-summary(accel_pathogens$rib)
-
-
-tot_rib <- accel_pathogens %>%
-  group_by(vial)%>%
-  summarize(tot_rib = sum(rib))
-accel_pathogens <- merge(accel_pathogens, tot_rib, by="vial")
-levels = unique(accel_pathogens$vial[order(accel_pathogens$tot_rib)])
-
-accel_pathogens$vial <- factor(accel_pathogens$vial,                                    # Change ordering manually
-                  levels = levels)
-
-str(accel_pathogens)
-
-#remove ca_cl (sea lice ran in signleton)
-accel_pathogens <- accel_pathogens[accel_pathogens$assay!='ca_cl', ]
-
-ggplot(accel_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
-
-str(pathogen_list)
-accel_pathogen_list <- pathogen_list[pathogen_list$ran_in_2023=='yes'|pathogen_list$ran_in_2023=='yes_singleton', ]
-accel_pathogen_list$December.2021.Onward.Names
-accel_pathogen_list$agent_name
-
-# Grouped
-p0 <- ggplot(accel_pathogens, aes(fill=assay, x=rib, y=vial)) + 
-  geom_bar(stat="identity")+
-  facet_wrap(~System, scales = "free", ncol=3)
-
-p0
-
-ggsave("./data/modified_data/Pace_accleleration_log_transformed.tiff", p0, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
-
-
-summary(as.factor(meta_trout$Transmitter))
+# 
+# 
+# 
+# accel_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13A-1x-BL',]
+# summary(as.factor(accel_trout$System))
+# 
+# accel_pathogens <- merge(trout_pathogens, accel_trout[c("vial")], by = "vial")
+# str(accel_pathogens)
+# accel_pathogens <- subset(accel_pathogens, select=-c(max_path, rib, tot_rib))
+# 
+# 
+# max_path <- accel_pathogens%>%
+#   group_by(assay) %>%
+#   summarize(max_path = max(log_value))
+# accel_pathogens <- merge(accel_pathogens, max_path, by = "assay")
+# accel_pathogens$rib <- accel_pathogens$log_value/accel_pathogens$max_path
+# summary(accel_pathogens$rib)
+# 
+# 
+# tot_rib <- accel_pathogens %>%
+#   group_by(vial)%>%
+#   summarize(tot_rib = sum(rib))
+# accel_pathogens <- merge(accel_pathogens, tot_rib, by="vial")
+# levels = unique(accel_pathogens$vial[order(accel_pathogens$tot_rib)])
+# 
+# accel_pathogens$vial <- factor(accel_pathogens$vial,                                    # Change ordering manually
+#                   levels = levels)
+# 
+# str(accel_pathogens)
+# 
+# #remove ca_cl (sea lice ran in signleton)
+# accel_pathogens <- accel_pathogens[accel_pathogens$assay!='ca_cl', ]
+# 
+# ggplot(accel_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
+# 
+# str(pathogen_list)
+# accel_pathogen_list <- pathogen_list[pathogen_list$ran_in_2023=='yes'|pathogen_list$ran_in_2023=='yes_singleton', ]
+# accel_pathogen_list$December.2021.Onward.Names
+# accel_pathogen_list$agent_name
+# 
+# # Grouped
+# p0 <- ggplot(accel_pathogens, aes(fill=assay, x=rib, y=vial)) + 
+#   geom_bar(stat="identity")+
+#   facet_wrap(~System, scales = "free", ncol=3)
+# 
+# p0
+# 
+# ggsave("./data/modified_data/Pace_accleleration_log_transformed.tiff", p0, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
+# 
+# 
+# summary(as.factor(meta_trout$Transmitter))
 ###########################################################
 #Fish included in temperature studies
 ###########################################################
-temp_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13-T-1x-BLU-1'|meta_trout$Transmitter=='V9T-2x' |meta_trout$Transmitter=='LP13-T',]
+summary(as.factor(meta_trout$Transmitter))
+temp_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13-T-1x-BLU-1'|meta_trout$Transmitter=='V9T-2x' |meta_trout$Transmitter=='LP13-T'|meta_trout$Transmitter=='LP13-TAD',]
 summary(as.factor(temp_trout$System))
 
-temp_pathogen_list <- pathogen_list[pathogen_list$ran_in_2021=='yes'&pathogen_list$ran_in_2023=='yes', ]
+temp_pathogen_list <- pathogen_list[pathogen_list$ran_in_2021=='yes'|pathogen_list$ran_in_2023=='yes', ]
+summary(as.factor(temp_pathogen_list$ran_in_2021))
+summary(as.factor(temp_pathogen_list$ran_in_2023))
+
 temp_pathogen_list$December.2021.Onward.Names
 temp_pathogen_list$agent_name
-temp_pathogen_list$December.2021.Onward.Names[temp_pathogen_list$December.2021.Onward.Names=='Ic_spp '] <- 'ic_spp'
-temp_pathogen_list$assay <- temp_pathogen_list$December.2021.Onward.Names
-temp_pathogen_list$assay
-
-#max pathogen values
-temp_pathogens <- merge(trout_pathogens, temp_trout[c("vial")], by = "vial")
-temp_pathogens <- subset(temp_pathogens, select=-c(max_path, rib, tot_rib))
-summary(as.factor(temp_pathogens$assay))
-temp_pathogens$assay[temp_pathogens$assay=='Ichy_Costia'] <- 'ic_spp'
-temp_pathogens$assay[temp_pathogens$assay=='prv_3'] <- 'prv-3'
-summary(as.factor(temp_pathogens$assay))
-temp_pathogens <- merge(temp_pathogens, temp_pathogen_list[c("assay")], by= "assay")
+str(temp_pathogen_list)
 
 
-#temp_pathogens <- merge(full_list_long_copy, temp_trout, by = "vial")
-hist(temp_pathogens$value[temp_pathogens$value>0 & temp_pathogens$value<1.5], breaks = 15)
-?hist
-#what was the cutoff again?
-#temp_pathogens <- temp_pathogens[temp_pathogens$value>1, ] #make them zero
-
-max_path <- temp_pathogens%>%
-  group_by(assay) %>%
-  summarize(max_path = max(log_value))
-temp_pathogens <- merge(temp_pathogens, max_path, by = "assay")
-temp_pathogens$rib <- temp_pathogens$log_value/temp_pathogens$max_path
-summary(temp_pathogens$rib)
-temp_pathogens$assay <- as.character(temp_pathogens$assay)
 str(temp_pathogens)
+str(temp_pathogen_list)
+#max pathogen values
+temp_pathogens <- merge(trout_95, temp_trout[c("vial")], by = "vial")
+temp_pathogens <- merge(temp_pathogens, temp_pathogen_list[c("assay", "ran_in_2021", "ran_in_2023")], by= "assay")
 
+str(temp_pathogens)
+detected_2020 <- unique(temp_pathogens$assay[temp_pathogens$Year<=2020])
+detected_2021_2022 <- unique(temp_pathogens$assay[temp_pathogens$Year>=2021])
+
+temp_pathogens <- temp_pathogens[temp_pathogens$ran_in_2021=='yes' & temp_pathogens$ran_in_2023=='yes', ]
+
+#Find individual detectoin counts for shared pathogens
+pathogen_count <- temp_pathogens %>%
+  group_by(vial, System, Year)%>%
+  summarize(n = n())
+
+#Find detectoin counts for shared pathogens
+pathogen_count <- temp_pathogens %>%
+  group_by(assay)%>%
+  summarize(n = n())
+pathogen_count <- merge(pathogen_count, temp_pathogen_list[c("assay", "agent_name")], by="assay")
 
 tot_rib <- temp_pathogens %>%
   group_by(vial)%>%
@@ -644,9 +644,9 @@ levels = unique(temp_pathogens$vial[order(temp_pathogens$tot_rib)])
 temp_pathogens$vial <- factor(temp_pathogens$vial,                                    # Change ordering manually
                                levels = levels)
 
+
 str(temp_pathogens)
 ggplot(temp_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
-
 
 
 # Grouped
@@ -660,10 +660,18 @@ str(temp_pathogens)
 
 
 
-ggsave("./data/modified_data/Pace_temperature.tiff", p1, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
+
+ggsave("./data/modified_data/Pace_temperature_RIB_LOD75.tiff", p1, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
 
 
-#saveRDS(temp_pathogens, "./data/modified_data/fish_metadata_PACE_temp_paper.RDS")
+#add pathogen count
+pathogen_count <- temp_pathogens %>%
+  group_by(vial)%>%
+  summarize(pathogen_count = n())
+temp_pathogens <- merge(temp_pathogens, pathogen_count, by="vial")
+
+
+saveRDS(temp_pathogens, "./data/modified_data/fish_metadata_PACE_temp_paper.RDS")
 saveRDS(pathogen_list, "./data/modified_data/pathogen_list.RDS")
 write.csv(pathogen_list, "./data/modified_data/pathogen_list.csv", row.names = FALSE)
 pathogen_list$December.2021.Onward.Names
