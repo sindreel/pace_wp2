@@ -284,8 +284,8 @@ str(full_list_long_ct)
 str(full_list_long_copy)
 head(full_list_long_ct)
 head(full_list_long_copy)
-hist(full_list_long_ct$value)
-hist(full_list_long_copy$value)
+#hist(full_list_long_ct$value)
+#hist(full_list_long_copy$value)
 summary(full_list_long_copy$value)
 hist(full_list_long_copy$value[full_list_long_copy$value<1000000 & full_list_long_copy$value>0])
 
@@ -498,7 +498,7 @@ head(trout_75)
 summary(as.factor(meta_trout$Transmitter))
 trout_75 <- subset(trout_75, select=-c(tot_rib))
 saveRDS(trout_75, "./data/modified_data/PACE_WP2_WP3_trout_pathogens_LOD75.RDS")
-
+write.csv(trout_75, "./data/modified_data/PACE_WP2_WP3_trout_pathogens_LOD75.csv", row.names = FALSE)
 
 
 #Test with 95% LOD
@@ -545,57 +545,83 @@ saveRDS(trout_95, "./data/modified_data/PACE_WP2_WP3_trout_pathogens_LOD95.RDS")
 
 #################################################################################
 #################################################################################
-# 
-# 
-# 
-# accel_trout <- meta_trout[meta_trout$Transmitter=='LP13-ADT' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13A-1x-BL',]
-# summary(as.factor(accel_trout$System))
-# 
-# accel_pathogens <- merge(trout_pathogens, accel_trout[c("vial")], by = "vial")
-# str(accel_pathogens)
-# accel_pathogens <- subset(accel_pathogens, select=-c(max_path, rib, tot_rib))
-# 
-# 
+
+summary(as.factor(meta_trout$System))
+summary(as.factor(meta_trout$Transmitter))
+
+
+accel_trout <- meta_trout[meta_trout$Transmitter=='LP13-TAD' |meta_trout$Transmitter=='LP13-AT' |meta_trout$Transmitter=='V13A-1x-BL',]
+summary(as.factor(accel_trout$System))
+
+accel_pathogens <- merge(trout_75, accel_trout[c("vial")], by = "vial")
+str(accel_pathogens)
+#accel_pathogens <- subset(accel_pathogens, select=-c(rib, tot_rib))
+
+
 # max_path <- accel_pathogens%>%
 #   group_by(assay) %>%
 #   summarize(max_path = max(log_value))
 # accel_pathogens <- merge(accel_pathogens, max_path, by = "assay")
 # accel_pathogens$rib <- accel_pathogens$log_value/accel_pathogens$max_path
 # summary(accel_pathogens$rib)
-# 
-# 
-# tot_rib <- accel_pathogens %>%
-#   group_by(vial)%>%
-#   summarize(tot_rib = sum(rib))
-# accel_pathogens <- merge(accel_pathogens, tot_rib, by="vial")
-# levels = unique(accel_pathogens$vial[order(accel_pathogens$tot_rib)])
-# 
-# accel_pathogens$vial <- factor(accel_pathogens$vial,                                    # Change ordering manually
-#                   levels = levels)
-# 
-# str(accel_pathogens)
-# 
-# #remove ca_cl (sea lice ran in signleton)
-# accel_pathogens <- accel_pathogens[accel_pathogens$assay!='ca_cl', ]
-# 
-# ggplot(accel_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
-# 
-# str(pathogen_list)
-# accel_pathogen_list <- pathogen_list[pathogen_list$ran_in_2023=='yes'|pathogen_list$ran_in_2023=='yes_singleton', ]
-# accel_pathogen_list$December.2021.Onward.Names
-# accel_pathogen_list$agent_name
-# 
-# # Grouped
-# p0 <- ggplot(accel_pathogens, aes(fill=assay, x=rib, y=vial)) + 
-#   geom_bar(stat="identity")+
-#   facet_wrap(~System, scales = "free", ncol=3)
-# 
-# p0
-# 
-# ggsave("./data/modified_data/Pace_accleleration_log_transformed.tiff", p0, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
-# 
-# 
-# summary(as.factor(meta_trout$Transmitter))
+
+#remove ca_cl (sea lice ran in signleton)
+accel_pathogens <- accel_pathogens[accel_pathogens$assay!='ca_cl', ]
+
+tot_rib <- accel_pathogens %>%
+  group_by(vial)%>%
+  summarize(tot_rib = sum(rib))
+accel_pathogens <- merge(accel_pathogens, tot_rib, by="vial")
+levels = unique(accel_pathogens$vial[order(accel_pathogens$tot_rib)])
+
+accel_pathogens$vial <- factor(accel_pathogens$vial,                                    # Change ordering manually
+                  levels = levels)
+
+
+test <- accel_pathogens[accel_pathogens$log_value>0,]
+test <- accel_pathogens%>%
+  group_by(assay)%>%
+  summarize(n())
+
+acceltags <- readRDS("./data/raw_data/accel-vial.RDS")
+summary(as.factor(acceltags$river))
+str(accel_pathogens)
+
+
+ggplot(accel_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
+
+str(pathogen_list)
+accel_pathogen_list <- pathogen_list[pathogen_list$ran_in_2023=='yes', ]
+accel_pathogen_list$December.2021.Onward.Names
+accel_pathogen_list$agent_name
+
+accel_pathogens <- merge(accel_pathogens, acceltags[c("vial")], by= "vial")
+summary(as.factor(acceltags$vial))
+
+str(accel_pathogens)
+pathogen_list$assay <- pathogen_list$December.2021.Onward.Names
+pathogen_list$Pathogen <- pathogen_list$agent_name
+
+accel_pathogens <- merge(accel_pathogens, pathogen_list[c("assay", "Pathogen")], by = "assay")
+accel_pathogens$fishid <- accel_pathogens$vial
+
+accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Ichthyobodo'] <- "Ichthyobodo Spp"
+accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Lep Sea Lice'] <- "Lepeophtheirus salmonis"
+accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Piscine orthoreovirus -1'] <- "Piscine orthoreovirus 1"
+accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Piscine orthoreovirus -3'] <- "Piscine orthoreovirus 3"
+
+
+# Grouped
+p0 <- ggplot(accel_pathogens, aes(fill=Pathogen, x=rib, y=FishID)) +
+  geom_bar(stat="identity")+
+  facet_wrap(~System, scales = "free_y", ncol=3)
+
+p0
+
+ggsave("./data/modified_data/Pace_accleleration_log_transformed.tiff", p0, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
+
+
+summary(as.factor(meta_trout$Transmitter))
 ###########################################################
 #Fish included in temperature studies
 ###########################################################
@@ -633,6 +659,9 @@ pathogen_count <- temp_pathogens %>%
 pathogen_count <- temp_pathogens %>%
   group_by(assay)%>%
   summarize(n = n())
+names(pathogen_count)
+names(temp_pathogen_list)
+temp_pathogen_list$agent_name <- temp_pathogen_list$X...agent_name
 pathogen_count <- merge(pathogen_count, temp_pathogen_list[c("assay", "agent_name")], by="assay")
 
 tot_rib <- temp_pathogens %>%
@@ -652,12 +681,15 @@ ggplot(temp_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
 # Grouped
 p1 <-ggplot(temp_pathogens, aes(fill=assay, x=rib, y=vial)) + 
   geom_bar(stat="identity")+
-  facet_wrap(~System, scales = "free", ncol=4)
+  facet_wrap(~System, scales = "free_y", ncol=4)
 
 p1
 str(temp_pathogens)
 
-
+test <- temp_pathogens[temp_pathogens$log_value>0,]
+test <- temp_pathogens%>%
+  group_by(assay)%>%
+  summarize(n())
 
 
 
