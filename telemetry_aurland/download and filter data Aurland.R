@@ -40,6 +40,18 @@ detections <- readRDS("./data/raw_data/tracking_data_aurland.RDS")
 str(detections)
 
 
+URL_tracking_data <- "https://ntnu.box.com/shared/static/r2jv8xk27igozt0a3pnb6yvcxa21303v.rds" #Uploaded new version 29.11.22
+download.file(url=URL_tracking_data,destfile="./data/raw_data/tracking_data_vosso_081223.RDS")
+
+detections_vosso <- readRDS("./data/raw_data/tracking_data_vosso_081223.RDS")
+
+str(detections)
+str(detections_vosso)
+nam <- names(detections)
+detections_vosso <- detections_vosso[c(nam)]
+detections <- rbind(detections, detections_vosso)
+
+
 library(dplyr)
 
 require(tidyverse); require(lubridate); require(rgdal)
@@ -55,7 +67,7 @@ rec<-gsheet2tbl('https://docs.google.com/spreadsheets/d/18mUpHQkSBs5PKN2XqoOZEUX
   dplyr::filter(!is.na(lon))
 str(rec)
 summary(as.factor(rec$Project))
-rec <- rec[rec$Project=='LAKES Aurland'|rec$Project=='LaKES Aurland',]
+#rec <- rec[rec$Project=='LAKES Aurland'|rec$Project=='LaKES Aurland',]
 
 saveRDS(rec, "./data/modified_data/stationID_aurland.RDS")
 
@@ -95,4 +107,4 @@ detections <- detections[detections$System=='Aurland', ]
 detections <- detections[!duplicated(detections), ]
 str(detections)
 
-saveRDS(detections, "./data/modified_data/detections_aurland.RDS")
+saveRDS(detections, "./data/modified_data/detections_aurland_vosso.RDS")
