@@ -9,7 +9,7 @@ library(ggplot2)
 #library(MuMIn)
 #library(performance)
 library(lubridate)
-
+library(dplyr)
 fishdata <- readRDS("./data/modified_data/fishdata_PACE_NORCE.RDS")
 
 ######################################################
@@ -27,6 +27,11 @@ tracking_bolstad$vial <- tracking_bolstad$gill_sample
 tracking_bolstad <- tracking_bolstad[c("transmitterID", "receiverID", "datetime", "temperature", "vial", "fjord", "tagging_date", "lat", "lon")]
 tracking_bolstad$datetime <- as.POSIXct(tracking_bolstad$datetime)
 str(tracking_bolstad)
+tracking_bolstad$date <- floor_date(tracking_bolstad$datetime, unit="days")
+tracking_bolstad <- tracking_bolstad %>%
+  group_by(vial, date) %>%
+  mutate(scale_temp = scale(temperature))
+
 tracking_bolstad$day <- tracking_bolstad$datetime-tracking_bolstad$tagging_date
 units(tracking_bolstad$day) <- "days"
 tracking_bolstad <- tracking_bolstad[tracking_bolstad$day>2 & tracking_bolstad$day<17,]
@@ -65,11 +70,23 @@ tracking_aurland$tagging_date <- as.POSIXct(tracking_aurland$tagging_date)
 tracking_aurland <- tracking_aurland[c("transmitterID", "receiverID", "datetime", "temperature", "vial", "fjord", "tagging_date", "lat", "lon")]
 tracking_aurland$datetime <- as.POSIXct(tracking_aurland$datetime)
 
+#add scaling based on average temp for each individual
+names(tracking_aurland)
+tracking_aurland$date <- floor_date(tracking_aurland$datetime, unit="days")
+?scale
+library(dplyr)
+tracking_aurland <- tracking_aurland %>%
+  group_by(vial, date) %>%
+  mutate(scale_temp = scale(temperature))
+
+
+
 tracking_aurland$day <- tracking_aurland$datetime-tracking_aurland$tagging_date
 units(tracking_aurland$day) <- "days"
 tracking_aurland <- tracking_aurland[tracking_aurland$day>2 & tracking_aurland$day<17,]
 str(tracking_aurland)
 summary(as.numeric(tracking_aurland$day))
+
 
 
 
@@ -87,6 +104,13 @@ tracking_beiarn$lon <- tracking_beiarn$DEPLOY_LONG
 tracking_beiarn <- tracking_beiarn[c("transmitterID", "receiverID", "datetime", "temperature", "vial", "fjord", "tagging_date", "lat", "lon")]
 tracking_beiarn$day <- tracking_beiarn$datetime-tracking_beiarn$tagging_date
 str(tracking_beiarn)
+tracking_beiarn$date <- floor_date(tracking_beiarn$datetime, unit="days")
+
+tracking_beiarn <- tracking_beiarn %>%
+  group_by(vial, date) %>%
+  mutate(scale_temp = scale(temperature))
+
+
 units(tracking_beiarn$day) <- "days"
 tracking_beiarn <- tracking_beiarn[tracking_beiarn$day>2 & tracking_beiarn$day<17,]
 summary(as.numeric(tracking_beiarn$day))
@@ -109,10 +133,36 @@ tracking_stjordal$lon <- tracking_stjordal$DEPLOY_LONG
 tracking_stjordal <- tracking_stjordal[c("transmitterID", "receiverID", "datetime", "temperature", "vial", "fjord", "tagging_date", "lat", "lon")]
 tracking_stjordal$day <- tracking_stjordal$datetime-tracking_stjordal$tagging_date
 str(tracking_stjordal)
+tracking_stjordal$date <- floor_date(tracking_stjordal$datetime, unit="days")
+tracking_stjordal$temperature <- as.numeric(tracking_stjordal$temperature)
+tracking_stjordal <- tracking_stjordal[!is.na(tracking_stjordal$temperature), ]
+tracking_stjordal <- tracking_stjordal %>%
+  group_by(vial, date) %>%
+  mutate(scale_temp = scale(temperature))
+
 units(tracking_stjordal$day) <- "days"
 tracking_stjordal <- tracking_stjordal[tracking_stjordal$day>2 & tracking_stjordal$day<17,]
 summary(as.numeric(tracking_stjordal$day))
 str(tracking_stjordal)
+
+tracking_aurland$receiverID <- as.character(tracking_aurland$receiverID)
+tracking_bolstad$receiverID <- as.character(tracking_bolstad$receiverID)
+tracking_beiarn$receiverID <- as.character(tracking_beiarn$receiverID)
+tracking_stjordal$receiverID <- as.character(tracking_stjordal$receiverID)
+
+tracking_aurland$transmitterID <- as.character(tracking_aurland$transmitterID)
+tracking_bolstad$transmitterID <- as.character(tracking_bolstad$transmitterID)
+tracking_beiarn$transmitterID <- as.character(tracking_beiarn$transmitterID)
+tracking_stjordal$transmitterID <- as.character(tracking_stjordal$transmitterID)
+
+tracking_aurland$lat <- as.numeric(tracking_aurland$lat)
+tracking_bolstad$lat <- as.numeric(tracking_bolstad$lat)
+tracking_beiarn$lat <- as.numeric(tracking_beiarn$lat)
+tracking_stjordal$lat <- as.numeric(tracking_stjordal$lat)
+tracking_aurland$lon <- as.numeric(tracking_aurland$lon)
+tracking_bolstad$lon <- as.numeric(tracking_bolstad$lon)
+tracking_beiarn$lon <- as.numeric(tracking_beiarn$lon)
+tracking_stjordal$lon <- as.numeric(tracking_stjordal$lon)
 
 
 tracking_data <- rbind(tracking_aurland, tracking_bolstad, tracking_beiarn, tracking_stjordal)
@@ -140,7 +190,7 @@ str(tracking_data)
 
 tracking_data$datetime <- floor_date(tracking_data$datetime, "hours")
 tracking_data <- tracking_data%>%
-  group_by(transmitterID, datetime, day, vial, fjord, tagging_date, lat, lon, tot_rib, pathogen_count)%>%
+  group_by(transmitterID, datetime, day, vial, fjord, tagging_date, lat, lon, tot_rib, pathogen_count, scale_temp)%>%
   summarize(temperature = first(temperature))
 
 str(tracking_data)
@@ -162,12 +212,18 @@ p
 
 p <- ggplot(tracking_data, aes(x=day, y=temperature, group = vial, col=year)) + geom_line() + theme_classic(base_size = 18)+ 
   theme(legend.position = "right") + 
+  xlab("Day of tracking") + ylab("Celcius") + facet_wrap(~fjord, scales = "free_y", ncol=4)
+
+p
+
+p <- ggplot(tracking_data, aes(x=day, y=scale_temp, group = vial, col=year)) + geom_line() + theme_classic(base_size = 18)+ 
+  theme(legend.position = "right") + 
   xlab("Month") + ylab("Celcius") + facet_wrap(~fjord, scales = "free_y", ncol=4)
 
 p
 
 
-ggsave("./data/modified_data/temperature_lines_14days.tiff", p, units="cm", width=30, height=15, dpi=600, compression = 'lzw', limitsize = FALSE)
+#ggsave("./data/modified_data/temperature_lines_14days.tiff", p, units="cm", width=30, height=15, dpi=600, compression = 'lzw', limitsize = FALSE)
 
 
 avg_temp <- tracking_data %>%
@@ -243,20 +299,53 @@ summary(data1$day_of_year)
 
 str(data1)
 
-gam1 <- bam(temperature~s(day_of_year, by=fjord, bs="tp", k=14) +s(hour, bs="cc", k=5) + s(vial, bs="re", k=97) +
-              s(lat, lon, bs="re", k=10) + s(tot_rib, bs="tp", k=5) + s(pathogen_count, bs="tp", k=5) + s(TL, bs="tp", k=5), 
+data1 %>% 
+  as_tibble %>% 
+  dplyr::select(dt=datetime, vial, fjord, temperature, tot_rib) %>% 
+  group_by(vial, dt=round_date(dt, "6 hours"), tot_rib, fjord) %>% 
+  dplyr::summarise(temperature=mean(temperature)) %>% 
+  dplyr::filter(month(dt)<10) %>% 
+  arrange(dt) %>% 
+  distinct %>% 
+  ggplot(aes(tot_rib, temperature, colour=fjord))+
+  geom_point()+
+  geom_smooth(method="lm")
+
+gam1 <- bam(temperature~s(day_of_year, by=fjord, bs="tp", k=14) +
+              #s(hour, bs="cc", k=5) + 
+              s(vial, bs="re") +
+              #s(lat, lon, bs="re", k=10) +
+              tot_rib+
+              pathogen_count+
+              TL+
+              fjord, 
             data= data1,
-            method = "fREML")
+            method = "fREML",
+            discrete = T)
+
+gam1 <- bam(scale_temp~s(day, by=fjord, bs="tp", k=14) +
+              #s(hour, bs="cc", k=5) + 
+              s(vial, bs="re") +
+              #s(lat, lon, bs="re", k=10) +
+              tot_rib*fjord,
+              #pathogen_count+
+              #TL+
+              #fjord, 
+            data= data1,
+            method = "fREML",
+            discrete = T)
 
 summary(gam1)
+p1 <- draw(gam1, parametric = TRUE)
+plot(gam1)
 
-mod_p1 <- gratia::draw(gam1)
-ggsave("./data/modified_data/pace_temp_GAM1_LOD75.tiff", mod_p1, units="cm", width=30, height=30, dpi=200, compression = 'lzw')
+d <- gratia::draw(gam1)
+ggsave("./data/modified_data/temp_model_22123.tiff", p1, units="cm", width=30, height=30, dpi=200, compression = 'lzw')
 
 
 
 
-# 
+ 
 # 
 # str(data1)
 # gam1 <- bam(temperature~s(day, by= fjord, bs="tp", k=14) + s(vial, bs="re", k=97) + s(hour, bs="cc", k=5) +
