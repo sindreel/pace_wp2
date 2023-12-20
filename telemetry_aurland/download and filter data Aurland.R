@@ -40,7 +40,7 @@ detections <- readRDS("./data/raw_data/tracking_data_aurland.RDS")
 str(detections)
 
 
-URL_tracking_data <- "https://ntnu.box.com/shared/static/r2jv8xk27igozt0a3pnb6yvcxa21303v.rds" #Uploaded new version 29.11.22
+URL_tracking_data <- "https://ntnu.box.com/shared/static/r2jv8xk27igozt0a3pnb6yvcxa21303v.rds" #Uploaded new version 081223
 download.file(url=URL_tracking_data,destfile="./data/raw_data/tracking_data_vosso_081223.RDS")
 
 detections_vosso <- readRDS("./data/raw_data/tracking_data_vosso_081223.RDS")
@@ -103,7 +103,7 @@ summary(as.factor(tmp$System))
 detections <- merge(detections, tmp, by.x = "oid", by.y="ID")
 str(detections)
 summary(as.factor(detections$System))
-detections <- detections[detections$System=='Aurland', ]
+detections <- detections[detections$System=='Aurland'|detections$System=='Vosso', ]
 detections <- detections[!duplicated(detections), ]
 str(detections)
 
