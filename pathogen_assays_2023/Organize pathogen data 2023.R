@@ -602,23 +602,29 @@ str(accel_pathogens)
 pathogen_list$assay <- pathogen_list$December.2021.Onward.Names
 pathogen_list$Pathogen <- pathogen_list$agent_name
 
+str(accel_pathogens)
+str(pathogen_list)
+pathogen_list$Pathogen <- pathogen_list$X...agent_name
 accel_pathogens <- merge(accel_pathogens, pathogen_list[c("assay", "Pathogen")], by = "assay")
-accel_pathogens$fishid <- accel_pathogens$vial
+accel_pathogens$FishID <- accel_pathogens$vial
 
 accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Ichthyobodo'] <- "Ichthyobodo Spp"
 accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Lep Sea Lice'] <- "Lepeophtheirus salmonis"
 accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Piscine orthoreovirus -1'] <- "Piscine orthoreovirus 1"
 accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Piscine orthoreovirus -3'] <- "Piscine orthoreovirus 3"
 
+str(accel_pathogens)
+
+library(viridis)
 
 # Grouped
 p0 <- ggplot(accel_pathogens, aes(fill=Pathogen, x=rib, y=FishID)) +
   geom_bar(stat="identity")+
-  facet_wrap(~System, scales = "free_y", ncol=3)
+  facet_wrap(~System, scales = "free_y", ncol=3)+  theme_classic(base_size = 18) + xlab("Relative infection burden (RIB)") + scale_fill_viridis_d()
 
 p0
 
-ggsave("./data/modified_data/Pace_accleleration_log_transformed.tiff", p0, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
+ggsave("./data/modified_data/Pace_accleleration_log_transformed_151223.tiff", p0, units="cm", width=35, height=15, dpi=600, compression = 'lzw')
 
 
 summary(as.factor(meta_trout$Transmitter))
