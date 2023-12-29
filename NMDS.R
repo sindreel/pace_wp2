@@ -30,6 +30,15 @@ env = dat[c(1:4, 18:22)]
 names(com)
 names(env)
 
+#Import gene markers for VDD and thermal stress
+thermal_stress <- readRDS("./data/modified_data/thermal_stress_211223.RDS")
+env <- merge(env, thermal_stress, by = "vial", all.x = TRUE)
+
+VDD <- readRDS("./data/modified_data/VDD_211223.RDS")
+env <- merge(env, VDD[c("vial", "Viral disease development")], by = "vial", all.x = TRUE)
+
+names(env)
+
 #convert com to a matrix
 m_com = as.matrix(com)
 
@@ -53,6 +62,7 @@ scores_sites <-scores(nmds, "sites")
 scores_sites <- as.data.frame(scores_sites)
 scores_sites <- cbind(env, scores_sites)
 head(scores_sites)
+scores_sites$Fjord <- scores_sites$fjord
 
 scores_species <- scores(nmds, "species")
 names(com)
@@ -72,13 +82,13 @@ head(species.scores)  #look at the data
     aes(
       x=NMDS1, 
       y=NMDS2,
-      colour=fjord), 
+      colour=Fjord), 
     size=3,
     alpha = 0.6)+
   theme_classic(base_size = 18)+
   ylab("NMDS2")+
   xlab("NMDS1")+
-  stat_ellipse(data=scores_sites, aes(x=NMDS1, y=NMDS2,color=fjord, group=fjord),type = "norm", level = 0.5)#+
+  stat_ellipse(data=scores_sites, aes(x=NMDS1, y=NMDS2,color=Fjord, group=Fjord),type = "norm", level = 0.5)#+
   #coord_fixed() + ## need aspect ratio of 1!
   #geom_segment(data = en,
   #             aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
@@ -90,7 +100,8 @@ head(species.scores)  #look at the data
 
 library(ggrepel)
 names(env)
-env <- env[c("fjord", "tot_rib", "pathogen_count", "warm_rib", "cold_rib", "temperature", "scale_temp", "diff_avg")]
+env <- env[c("fjord", "tot_rib", "pathogen_count", "warm_rib", "cold_rib", "temperature", "scale_temp", "diff_avg", "Thermal stress", "Viral disease development")]
+names(env) <- c("Fjord", "Total RIB", "Pathogen count", "Warm RIB", "Cold RIB", "Temperature", "Scaled relative temperature", "Temperature deviation", "Thermal stress indicator", "Viral disease development")
 
 envfit_1 = envfit(nmds, env, permutations = 999, na.rm = TRUE)
 envfit_1
@@ -99,10 +110,102 @@ en_coord_cont = as.data.frame(scores(envfit_1, "vectors")) * ordiArrowMul(envfit
 en_coord_cat = as.data.frame(scores(envfit_1, "factors")) * ordiArrowMul(envfit_1)
 
 p1
-p1 <- p1 + geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
+p2 <- p1 + geom_segment(aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2), 
                   data = en_coord_cont, size =1, alpha = 0.5, colour = "grey30")+
   geom_text_repel(data = en_coord_cont, aes(x = NMDS1, y = NMDS2), colour = "grey30", 
-            fontface = "bold", label = row.names(en_coord_cont), direction = "y", force_pull = 5)
+            fontface = "bold", label = row.names(en_coord_cont), direction = "both", force_pull = 30)
+
+p2
+
+ggsave("./data/modified_data/NMDS_thermal_paper.tiff", p2, units="cm", width=30, height=15, dpi=600, compression = 'lzw', limitsize = FALSE)
+ggsave("./data/modified_data/NMDS_thermal_paper.png", p2, units="cm", width=30, height=15, dpi=600,  limitsize = FALSE)
+
+
+adonis2(nmds ~ Fjord, data = env, permutations = 999)
+env$`Scaled relative temperature`
+env$`Thermal stress indicator`
+str(env)
+
+p0 <- ggplot(env, aes(x=`Temperature`, y = `Temperature deviation`)) +
+  geom_point(aes(colour = Fjord))+  theme_classic(base_size = 12) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth(aes(group = 1), method = "lm")
+
+p0
+
+#Viral disease development
+p0 <- ggplot(env, aes(y=`Temperature`, x = `Viral disease development`)) +
+  geom_point(aes(colour = Fjord))+  theme_classic(base_size = 12) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth(aes(group = 1), method = "lm")
+
+p0
+
+str(env)
+str(scores_sites)
+
+p0 <- ggplot(scores_sites, aes(y=`scale_temp`, x = `NMDS2`)) +
+  geom_point(aes(colour = Fjord))+  theme_classic(base_size = 12) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth(aes(group = 1), method = "lm")
+
+p0
+
+p0 <- ggplot(scores_sites, aes(y=`temperature`, x = `NMDS1`)) +
+  geom_point(aes(colour = Fjord))+  theme_classic(base_size = 12) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth(aes(group = 1), method = "lm")
+
+p0
+
+p0 <- ggplot(env, aes(x=`Temperature`, y = `Viral disease development`)) +
+  geom_point(aes(colour = Fjord))+  theme_classic(base_size = 12) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth(aes(group = 1), method = "lm")
+
+p0
+
+
+p0 <- ggplot(env, aes(y=`Temperature deviation`, x = `Viral disease development`)) +
+  geom_point(aes(colour = Fjord))+  theme_classic(base_size = 12) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth(aes(group = 1), method = "lm")
+
+p0
+
+
+
+
+names(env)
+
+p3 <- ggplot(env, aes(x=`Temperature`, y = `Thermal stress indicator`)) +
+  geom_point(aes(colour = Fjord))+  theme_classic(base_size = 18) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth(aes(group = 1), method = "lm")
+
+p3
+
+ggsave("./data/modified_data/thermal_stress_thermal_paper.tiff", p3, units="cm", width=30, height=15, dpi=600, compression = 'lzw', limitsize = FALSE)
+ggsave("./data/modified_data/thermal_stress_thermal_paper.png", p3, units="cm", width=15, height=15, dpi=600,  limitsize = FALSE)
+
+
+
+p0 <- ggplot(env, aes(x=`Temperature`, y = `Cold RIB`)) +
+  geom_point()+  theme_classic(base_size = 12) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth()
+
+p0
+
+summary(lm(env$`Cold RIB`~env$`Temperature`))
+
+p0 <- ggplot(env, aes(x=`Temperature`, y = `Cold RIB`)) +
+  geom_point()+  theme_classic(base_size = 12) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth()
+
+p0
+
+p0 <- ggplot(env, aes(x=`Temperature`, y = `Total RIB`)) +
+  geom_point()+  theme_classic(base_size = 12) + #xlab("PRV-3") +# ylab("Temperature deviation (celcius)")+
+  geom_smooth()
+
+p0
+
+#ggsave("./data/modified_data/temperature_lines_14days_081223_new.tiff", p, units="cm", width=30, height=15, dpi=600, compression = 'lzw', limitsize = FALSE)
+
+
 
 
 

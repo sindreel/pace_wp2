@@ -1,18 +1,11 @@
-###########################################################
-#Clear memory
-rm(list = ls(all = TRUE))
-###########################################################
-options(scipen=999)
-#test
-
 require(tidyverse)
 require(vegan)
 
 meta<-gsheet::gsheet2tbl("https://docs.google.com/spreadsheets/d/1ht4dk480HDm5a6Eop1eGKOnQNeGXJnKb7FnFBc9dMGA/edit#gid=0")
 
 sel<-gsheet::gsheet2tbl("https://docs.google.com/spreadsheets/d/1kTBdcz_luBNkyh0wuKUK3fmVckBsaZMt/edit#gid=1110154350") %>%
-  dplyr::select(3,7) %>%
-  dplyr::filter(VDD=="x")
+  dplyr::select(3:4) %>%
+  dplyr::filter(Thermal...4=="x")
 
 
 rd<-gsheet::gsheet2tbl("https://docs.google.com/spreadsheets/d/1kTBdcz_luBNkyh0wuKUK3fmVckBsaZMt/edit#gid=2122083308") %>%
@@ -56,11 +49,11 @@ PCA_plot <- sheet_1 %>%
 PCA_plot
 
 
-#CONCLUSION: Looking at the PCA plot, we should use the PC2 as indicator for viral disease development
+#CONCLUSION: Looking at the PCA plot, we should use the PC1 as indicator for thermal stress
 str(sheet_1)
 
 #Make export for thermal paper:
-export <- sheet_1[c("vial", "PC2", "Spp")]
-names(export) <- c("vial", "Viral disease development", "Spp")
+export <- sheet_1[c("vial", "PC1", "Spp")]
+names(export) <- c("vial", "Thermal stress", "Spp")
 export <- export[export$Spp=='Salmo trutta', ]
-saveRDS(export, "./data/modified_data/VDD_211223.RDS")
+saveRDS(export, "./data/modified_data/thermal_stress_211223.RDS")
