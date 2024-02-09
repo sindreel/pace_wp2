@@ -51,4 +51,5 @@ fit_4th <- gllvm(y, X, TR, family= "negative.binomial", num.lv = 3, formula= ~(B
 coefplot(fit_4th, cex.ylab = 0.7, mar = c(4, 9, 2, 1), xlim.list = list(NULL,NULL,c(-4, 4)))
 
 
+#Final note: probably good to consider random slopes: https://link.springer.com/article/10.1007/s11222-022-10189-w
 
