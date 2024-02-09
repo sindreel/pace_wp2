@@ -106,6 +106,27 @@ names(env) <- c("Fjord", "Total RIB", "Pathogen count", "Warm RIB", "Cold RIB", 
 envfit_1 = envfit(nmds, env, permutations = 999, na.rm = TRUE)
 envfit_1
 
+env2 <- env[c("Total RIB", "Pathogen count", "Warm RIB", "Cold RIB", "Temperature", "Scaled relative temperature", "Temperature deviation", "Thermal stress indicator", "Viral disease development")]
+
+envfit_2 = envfit(nmds, env2, permutations = 999, na.rm = TRUE)
+envfit_2
+
+
+#This is not a test if non-linear fit is necessary, but it is a test of the "significance" of its non-linearity:
+  
+library(vegan)
+data(mite, mite.env)
+mod <- metaMDS(mite, trace=FALSE)
+fit <- ordisurf(mod ~ SubsDens, data=mite.env) # (possibly) nonlinear
+fit0 <- ordisurf(mod ~ SubsDens, data=mite.env, knots=1) # forced linear
+anova(fit0, fit, test = "F") # test against linear null
+
+
+str(envfit_2)
+cor(model.matrix(envfit_2), predict(envfit_2, rank=2))
+
+summary(lm(env$`Total RIB`~env$`Temperature deviation`))
+plot(env$`Total RIB`~env$`Thermal stress indicator`)
 en_coord_cont = as.data.frame(scores(envfit_1, "vectors")) * ordiArrowMul(envfit_1)
 en_coord_cat = as.data.frame(scores(envfit_1, "factors")) * ordiArrowMul(envfit_1)
 
@@ -206,7 +227,7 @@ p0
 #ggsave("./data/modified_data/temperature_lines_14days_081223_new.tiff", p, units="cm", width=30, height=15, dpi=600, compression = 'lzw', limitsize = FALSE)
 
 
-
+saveRDS(env, "./data/modified_data/env_291223.RDS")
 
 
 ?geom_text_repel
