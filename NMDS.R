@@ -30,6 +30,9 @@ env = dat[c(1:4, 18:22)]
 names(com)
 names(env)
 
+saveRDS(com, "./data/modified_data/GLLVM_y.RDS")
+saveRDS(env, "./data/modified_data/GLLVM_X.RDS")
+
 #Import gene markers for VDD and thermal stress
 thermal_stress <- readRDS("./data/modified_data/thermal_stress_211223.RDS")
 env <- merge(env, thermal_stress, by = "vial", all.x = TRUE)

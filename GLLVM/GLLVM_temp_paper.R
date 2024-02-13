@@ -11,15 +11,24 @@ library(patchwork)
 data(antTraits)
 
 y <- as.matrix(antTraits$abund);
+y <- readRDS("./data/modified_data/GLLVM_y.RDS")
+y <- y %>%
+  dplyr::select(-c(sum))
+
 X <- scale(as.matrix(antTraits$env))
+X <- readRDS("./data/modified_data/GLLVM_X.RDS")
+X$thermal_stress <- X$`Thermal stress`
+X$VDD <- X$`Viral disease development`
+X <- X %>%
+  dplyr::select(c(fjord, temperature, scale_temp, thermal_stress, VDD))
+X$temperature <- scale(X$temperature) 
+
 TR <- antTraits$traits
 
 fitp <- gllvm(y, family = poisson())
 fitp
 par(mfrow = c(3, 3))
 plot(fitp)
-ordiplot(fitp, biplot = TRUE, ind.spp = 15, xlim = c(-3, 3), ylim=c(-2, 1.6))
-
 
 
 fit_ord <- gllvm(y, family = "negative.binomial")
@@ -27,25 +36,42 @@ fit_ord
 par(mfrow = c(3, 3))
 plot(fit_ord)
 
+fit_tweed <- gllvm(y, family = "tweedie")
+fit_tweed
+par(mfrow = c(3, 3))
+plot(fit_ord)
+
+
 par(mfrow = c(1, 1))
-ordiplot(fit_ord, biplot = TRUE, ind.spp = 15, xlim = c(-3, 3), ylim=c(-2, 1.6))
+ordiplot(fit_ord)
 
 #include environmental parameters in the model
+str(X)
+#X$fjord <- as.factor(X$fjord)
+X[is.na(X)] <- 0
 
-fit_env <- gllvm(y, X, family= "negative.binomial", num.lv = 3, formula= ~Bare.ground + Shrub.cover + Volume.lying.CWD)
+str(X)
+X$fjord <- as.factor(X$fjord)
+X <- as.matrix(X)
+str(X)
+fit_env <- gllvm(y, X, family= "negative.binomial", formula= ~ temperature+ scale_temp+ thermal_stress+ VDD)
 par(mfrow = c(3, 3))
 plot(fit_env)
-
+ordiplot(fit_env)
 par(mfrow = c(1, 1))
-coefplot(fit_env, cex.ylab = 0.7, mar = c(4, 9, 2, 1), xlim.list = list(NULL,NULL,c(-4, 4)))
+summary(fit_env)
+coefplot(fit_env)
 
+coefplot(fit_env, cex.ylab = 1, mar = c(4, 5, 2, 1), xlim.list = list(c(-2, 2),c(-2, 2),c(-4, 4)))
+?coefplot
 
 cr <- getResidualCor(fit_env)
+options(scipen=999)
 library(corrplot)
 library(gclus)
 par(mfrow = c(1, 1))
-corrplot(cr[order.single(cr),order.single(cr)], diag=FALSE, type="lower", method="square", tl.cex=0.8, tv.srt=45, tl.col="red")
-
+corrplot(cr[order.single(cr),order.single(cr)], diag=TRUE, type="lower", method="square", tl.cex=0.8, tv.srt=45, tl.col="red")
+?corrplot
 
 fit_4th <- gllvm(y, X, TR, family= "negative.binomial", num.lv = 3, formula= ~(Bare.ground + Shrub.cover + Volume.lying.CWD) + (Bare.ground + Shrub.cover + Volume.lying.CWD):(Pilosity + Polymorphism + Webers.length))
 
