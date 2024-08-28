@@ -13,11 +13,15 @@ tracking_bolstad <-readRDS("./data/modified_data/fever_bolstad.RDS")
 tracking_beiarn <- readRDS("./data/modified_data/fever_beiarfjorden.RDS")
 tracking_stjordal <- readRDS("./data/modified_data/fever_stjordal.RDS")
 str(tracking_bolstad)
+str(tracking_beiarn)
+str(tracking_stjordal)
 summary(as.factor(tracking_bolstad$Transmitter)) #comment - all transmitters are only temp sensors here
 tracking_bolstad$temperature <- tracking_bolstad$Data/10
 tracking_bolstad$receiverID <- tracking_bolstad$Receiver
 str(tracking_bolstad)
-tracking_bolstad <- tracking_bolstad[c("transmitterID", "receiverID", "datetime", "temperature", "gill_sample", "fjord", "tagging_date")]
+tracking_bolstad$DEPLOY_LAT <- tracking_bolstad$lat/1000000
+tracking_bolstad$DEPLOY_LONG <- tracking_bolstad$lon/100000
+tracking_bolstad <- tracking_bolstad[c("transmitterID", "receiverID", "datetime", "temperature", "gill_sample", "fjord", "tagging_date", "DEPLOY_LAT", "DEPLOY_LONG")]
 tracking_bolstad$fishID <- tracking_bolstad$transmitterID
 tracking_bolstad$datetime <- as.POSIXct(tracking_bolstad$datetime)
 tracking_bolstad$day <- as.numeric(tracking_bolstad$datetime-tracking_bolstad$tagging_date)
@@ -29,7 +33,7 @@ fishdata_beiarn <- readRDS("./data/modified_data/fishdata.RDS")
 tracking_beiarn <- merge(tracking_beiarn, fishdata_beiarn[c("transmitterID", "gill_ID")], by = "transmitterID")
 str(tracking_beiarn)
 tracking_beiarn$gill_sample <- tracking_beiarn$gill_ID
-tracking_beiarn <- tracking_beiarn[c("fishID","transmitterID", "receiverID", "datetime", "temperature", "gill_sample", "fjord", "tagging_date")]
+tracking_beiarn <- tracking_beiarn[c("fishID","transmitterID", "receiverID", "datetime", "temperature", "gill_sample", "fjord", "tagging_date", "DEPLOY_LAT", "DEPLOY_LONG")]
 tracking_beiarn$day <- as.numeric(tracking_beiarn$datetime-tracking_beiarn$tagging_date)
 head(tracking_beiarn$day)
 summary(tracking_beiarn$day)
@@ -42,12 +46,19 @@ export <- export[export$gill_sample!='',]
 write.csv(export, "./data/modified_data/samples_stjordal_140623.csv")
 tracking_stjordal <- merge(tracking_stjordal, fishdata_stjordal[c("transmitterID", "gill_sample")], by = "transmitterID")
 str(tracking_stjordal)
-tracking_stjordal <- tracking_stjordal[c("fishID","transmitterID", "receiverID", "datetime", "temperature", "gill_sample", "fjord", "tagging_date")]
+tracking_stjordal <- tracking_stjordal[c("fishID","transmitterID", "receiverID", "datetime", "temperature", "gill_sample", "fjord", "tagging_date", "DEPLOY_LAT", "DEPLOY_LONG")]
 tracking_stjordal$day <- as.numeric(tracking_stjordal$datetime-tracking_stjordal$tagging_date)
 head(tracking_stjordal$day)
 summary(tracking_stjordal$day)
 
 tracking_data <- rbind(tracking_bolstad, tracking_beiarn, tracking_stjordal)
+
+str(tracking_data)
+library(dplyr)
+receiver_locations <- tracking_data %>%
+  group_by(fjord, DEPLOY_LAT, DEPLOY_LONG) %>%
+  dplyr::summarise(n = n())
+write.csv(receiver_locations, "./data/modified_data/receiver_locations.csv", row.names = FALSE)
 
 tmp <- tracking_data
 

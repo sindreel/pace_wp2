@@ -578,6 +578,7 @@ accel_pathogens$vial <- factor(accel_pathogens$vial,                            
                   levels = levels)
 
 
+
 test <- accel_pathogens[accel_pathogens$log_value>0,]
 test <- accel_pathogens%>%
   group_by(assay)%>%
@@ -586,8 +587,8 @@ test <- accel_pathogens%>%
 acceltags <- readRDS("./data/raw_data/accel-vial.RDS")
 summary(as.factor(acceltags$river))
 str(accel_pathogens)
-
-
+accel_pathogens$vial
+acceltags$vial
 ggplot(accel_pathogens, aes(y=value, x=assay, col=vial)) + geom_point()
 
 str(pathogen_list)
@@ -595,8 +596,11 @@ accel_pathogen_list <- pathogen_list[pathogen_list$ran_in_2023=='yes', ]
 accel_pathogen_list$December.2021.Onward.Names
 accel_pathogen_list$agent_name
 
-accel_pathogens <- merge(accel_pathogens, acceltags[c("vial")], by= "vial")
+
+#accel_pathogens <- merge(accel_pathogens, acceltags[c("vial")], by= "vial")
 summary(as.factor(acceltags$vial))
+summary(as.factor(acceltags$river))
+summary(as.factor(accel_pathogens$System))
 
 str(accel_pathogens)
 pathogen_list$assay <- pathogen_list$December.2021.Onward.Names
@@ -605,6 +609,8 @@ pathogen_list$Pathogen <- pathogen_list$agent_name
 str(accel_pathogens)
 str(pathogen_list)
 pathogen_list$Pathogen <- pathogen_list$X...agent_name
+pathogen_list$Pathogen <- pathogen_list$agent_name
+
 accel_pathogens <- merge(accel_pathogens, pathogen_list[c("assay", "Pathogen")], by = "assay")
 accel_pathogens$FishID <- accel_pathogens$vial
 
@@ -614,6 +620,8 @@ accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Piscine orthoreovirus -1'] <
 accel_pathogens$Pathogen[accel_pathogens$Pathogen=='Piscine orthoreovirus -3'] <- "Piscine orthoreovirus 3"
 
 str(accel_pathogens)
+
+summary(as.factor(accel_pathogens$System[!duplicated(accel_pathogens$vial)]))
 
 library(viridis)
 
